@@ -1,56 +1,66 @@
-# Welcome to your Expo app 👋
+# Financy 📊
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A premium, privacy-focused personal finance manager app built on Expo (React Native) and backed by your personal Google Sheets.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Google Sheets Database**: Direct sync with Google Sheets. No intermediate servers store your financial transactions or banking keys.
+- **Google Sign-In**: Native Google OAuth2 authentication requesting read-only access to sheets.
+- **Interactive Financial Dashboard**: Dynamic overview of income, expenses, and savings with transaction ledgers.
+- **Theme Support**: Adaptive high-contrast dark and light modes.
 
-   ```bash
-   npm install
-   ```
+## Tech Stack
 
-2. Start the app
+- **Framework**: [Expo](https://expo.dev/) (React Native) with [Expo Router](https://docs.expo.dev/router/introduction/) (v56 / SDK 56)
+- **Language**: TypeScript
+- **Auth**: `@react-native-google-signin/google-signin`
+- **Secure Storage**: `expo-secure-store`
+- **Package Manager**: `pnpm`
 
-   ```bash
-   npx expo start
-   ```
+---
 
-In the output, you'll find options to open the app in a
+## Get Started
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+### 1. Install Dependencies
 
 ```bash
-npm run reset-project
+pnpm install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### 2. Start the App
 
-### Other setup steps
+Start the local Metro bundler:
+```bash
+pnpm start
+```
+*Press **w** to open on the web, or run on your connected Android device.*
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+---
 
-## Learn more
+## Google Cloud Console OAuth Setup (For Live Sync)
 
-To learn more about developing your project with Expo, look at the following resources:
+To connect the application to your actual Google Sheets, you must register client credentials:
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+1. **Google Cloud Project**: Go to the [Google Cloud Console](https://console.cloud.google.com/) and create a new project.
+2. **Enable Sheets API**: Search for "Google Sheets API" in the library and click **Enable**.
+3. **Configure OAuth Consent Screen**:
+   - Set user type to External (or Internal if under a GSuite domain).
+   - Add the scopes: `.../auth/userinfo.profile`, `.../auth/userinfo.email`, and `https://www.googleapis.com/auth/spreadsheets.readonly`.
+   - Add your test user emails.
+4. **Create OAuth Client Credentials**:
+   - **Web Application Client ID**: Required for Android and Web. Use this client ID inside the app configuration.
+   - **Android Client ID**: Create an Android credential. Register the Package Name as `com.anonymous.financy`. Generate and register your SHA-1 signing certificate.
+5. **Configure Environment Variables**:
+   Create a `.env` file in the project root:
+   ```env
+   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
+   ```
+6. **Build and Prebuild**:
+   Since the Google Sign-in library contains native code, you must prebuild the app to generate native files:
+   ```bash
+   pnpm expo prebuild
+   ```
+   Then compile your development build for Android:
+   ```bash
+   eas build --platform android --profile development
+   ```
