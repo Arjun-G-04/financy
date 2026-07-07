@@ -41,7 +41,12 @@ jobs:
 
       - name: Accept Android SDK Licenses Manually
         run: |
-          yes | sdkmanager --licenses || true
+          for sdk in /usr/local/lib/android/sdk/cmdline-tools/*/bin/sdkmanager; do
+            if [ -x "$sdk" ]; then
+              echo "Accepting licenses for $sdk"
+              yes | "$sdk" --licenses || true
+            fi
+          done
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
