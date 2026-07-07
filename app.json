@@ -13,6 +13,7 @@
     },
     "android": {
       "package": "com.anonymous.financy",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -42,7 +43,8 @@
         {
           "iosUrlScheme": "com.googleusercontent.apps.disabled"
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

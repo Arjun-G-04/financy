@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   ScrollView,
   KeyboardAvoidingView,
-  Platform,
   useColorScheme,
+  Modal,
 } from 'react-native';
 import { SheetTransaction } from '@/services/googleSheets';
 import { Colors, Spacing } from '@/constants/theme';
@@ -47,113 +47,116 @@ export function ImportTransactionModal({
   if (!transaction) return null;
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-      style={styles.inlineOverlayBg}
+    <Modal
+      animationType="fade"
+      transparent={true}
+      visible={transaction !== null}
+      onRequestClose={onClose}
+      statusBarTranslucent={true}
     >
-      <ScrollView
-        contentContainerStyle={styles.modalScrollContainer}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
+      <KeyboardAvoidingView
+        behavior="padding"
+        style={styles.modalOverlayBg}
       >
-        <View style={[styles.importDialogContent, { backgroundColor: colors.backgroundElement }]}>
-          
-          <View style={styles.importHeaderBlock}>
-            <Text style={[styles.importDialogTitle, { color: colors.text }]}>Import to Ledger</Text>
-            <Text style={[styles.importDialogSubtitle, { color: colors.textSecondary }]}>
-              Specify a local name based on memory or clue
-            </Text>
-          </View>
-          
-          <View style={styles.tilesContainer}>
-            {/* Row for Date, Type, Amount */}
-            <View style={styles.tilesRow}>
-              
-              {/* Date Tile */}
-              <View style={[styles.tileCard, { flex: 1.4, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
-                <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>DATE</Text>
-                <Text style={[styles.tileValue, { color: colors.text }]} numberOfLines={1}>
-                  {transaction.date}
-                </Text>
-              </View>
-
-              {/* Type Tile */}
-              <View style={[styles.tileCard, { flex: 0.6, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
-                <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>TYPE</Text>
-                <Text style={[styles.tileValue, { color: transaction.type === 'credit' ? colors.text : '#F43F5E', fontWeight: 'bold' }]} numberOfLines={1}>
-                  {transaction.type === 'credit' ? 'C' : 'D'}
-                </Text>
-              </View>
-
-              {/* Amount Tile */}
-              <View style={[styles.tileCard, { flex: 1.0, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
-                <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>AMOUNT</Text>
-                <Text style={[styles.tileValue, { color: colors.text }]} numberOfLines={1}>
-                  {currencySymbol}{transaction.amount.toFixed(2)}
-                </Text>
-              </View>
-
-            </View>
-
-            {/* Full width Merchant Clue Tile */}
-            <View style={[styles.tileCardFull, { backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
-              <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>MERCHANT INFO CLUE</Text>
-              <Text style={[styles.tileValueLarge, { color: colors.text }]} numberOfLines={2}>
-                {transaction.merchant}
+        <ScrollView
+          contentContainerStyle={styles.modalScrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={[styles.importDialogContent, { backgroundColor: colors.backgroundElement }]}>
+            
+            <View style={styles.importHeaderBlock}>
+              <Text style={[styles.importDialogTitle, { color: colors.text }]}>Import to Ledger</Text>
+              <Text style={[styles.importDialogSubtitle, { color: colors.textSecondary }]}>
+                Specify a local name based on memory or clue
               </Text>
             </View>
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Ledger Transaction Name</Text>
-            <TextInput
-              style={[
-                styles.textInput,
-                {
-                  color: colors.text,
-                  borderColor: colors.backgroundSelected,
-                  backgroundColor: colors.background,
-                  height: 54,
-                  fontSize: 15,
-                }
-              ]}
-              placeholder="Enter custom description"
-              placeholderTextColor={colors.textSecondary}
-              value={importNameInput}
-              onChangeText={setImportNameInput}
-            />
-          </View>
-
-          <View style={styles.importActionsBlock}>
-            <TouchableOpacity
-              style={[styles.importActBtn, styles.importCancelBtn, { borderColor: colors.backgroundSelected }]}
-              onPress={onClose}
-            >
-              <Text style={[styles.importActBtnText, { color: colors.text }]}>Cancel</Text>
-            </TouchableOpacity>
             
-            <TouchableOpacity
-              style={[styles.importActBtn, styles.importConfirmBtn, { backgroundColor: colors.text }]}
-              onPress={handleConfirmImport}
-            >
-              <Text style={[styles.importActBtnText, { color: colors.background }]}>Confirm Import</Text>
-            </TouchableOpacity>
+            <View style={styles.tilesContainer}>
+              {/* Row for Date, Type, Amount */}
+              <View style={styles.tilesRow}>
+                
+                {/* Date Tile */}
+                <View style={[styles.tileCard, { flex: 1.4, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
+                  <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>DATE</Text>
+                  <Text style={[styles.tileValue, { color: colors.text }]} numberOfLines={1}>
+                    {transaction.date}
+                  </Text>
+                </View>
+
+                {/* Type Tile */}
+                <View style={[styles.tileCard, { flex: 0.6, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
+                  <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>TYPE</Text>
+                  <Text style={[styles.tileValue, { color: transaction.type === 'credit' ? colors.text : '#F43F5E', fontWeight: 'bold' }]} numberOfLines={1}>
+                    {transaction.type === 'credit' ? 'C' : 'D'}
+                  </Text>
+                </View>
+
+                {/* Amount Tile */}
+                <View style={[styles.tileCard, { flex: 1.0, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
+                  <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>AMOUNT</Text>
+                  <Text style={[styles.tileValue, { color: colors.text }]} numberOfLines={1}>
+                    {currencySymbol}{transaction.amount.toFixed(2)}
+                  </Text>
+                </View>
+
+              </View>
+
+              {/* Full width Merchant Clue Tile */}
+              <View style={[styles.tileCardFull, { backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
+                <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>MERCHANT INFO CLUE</Text>
+                <Text style={[styles.tileValueLarge, { color: colors.text }]} numberOfLines={2}>
+                  {transaction.merchant}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Ledger Transaction Name</Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    color: colors.text,
+                    borderColor: colors.backgroundSelected,
+                    backgroundColor: colors.background,
+                    height: 54,
+                    fontSize: 15,
+                  }
+                ]}
+                placeholder="Enter custom description"
+                placeholderTextColor={colors.textSecondary}
+                value={importNameInput}
+                onChangeText={setImportNameInput}
+              />
+            </View>
+
+            <View style={styles.importActionsBlock}>
+              <TouchableOpacity
+                style={[styles.importActBtn, styles.importCancelBtn, { borderColor: colors.backgroundSelected }]}
+                onPress={onClose}
+              >
+                <Text style={[styles.importActBtnText, { color: colors.text }]}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={[styles.importActBtn, styles.importConfirmBtn, { backgroundColor: colors.text }]}
+                onPress={handleConfirmImport}
+              >
+                <Text style={[styles.importActBtnText, { color: colors.background }]}>Confirm Import</Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
 
 const styles = StyleSheet.create({
-  inlineOverlayBg: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+  modalOverlayBg: {
+    flex: 1,
     backgroundColor: 'rgba(0, 0, 0, 0.85)',
-    zIndex: 999,
   },
   modalScrollContainer: {
     flexGrow: 1,

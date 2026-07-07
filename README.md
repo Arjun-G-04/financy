@@ -1,13 +1,12 @@
-# Financy 📊
+# Financy
 
-A premium, privacy-focused personal finance manager app built on Expo (React Native) and backed by your personal Google Sheets.
+A privacy-focused personal finance manager app built on Expo (React Native) and backed by your personal Google Sheets.
 
 ## Features
 
 - **Google Sheets Database**: Direct sync with Google Sheets. No intermediate servers store your financial transactions or banking keys.
 - **Google Sign-In**: Native Google OAuth2 authentication requesting read-only access to sheets.
 - **Interactive Financial Dashboard**: Dynamic overview of income, expenses, and savings with transaction ledgers.
-- **Theme Support**: Adaptive high-contrast dark and light modes.
 
 ## Tech Stack
 
@@ -33,7 +32,6 @@ Start the local Metro bundler:
 ```bash
 pnpm start
 ```
-*Press **w** to open on the web, or run on your connected Android device.*
 
 ---
 
@@ -60,7 +58,27 @@ To connect the application to your actual Google Sheets, you must register clien
    ```bash
    pnpm expo prebuild
    ```
-   Then compile your development build for Android:
+    Then compile your development build for Android:
+    ```bash
+    eas build --platform android --profile development
+    ```
+
+## Building the Production APK Locally
+
+The build is configured to compile only for modern physical devices (`arm64-v8a`) with code minification and resource shrinking enabled to achieve a lightweight package size (reducing it from ~116MB to ~30MB).
+
+To build the APK:
+
+1. **Prebuild the Android platform**:
    ```bash
-   eas build --platform android --profile development
+   pnpm expo prebuild --platform android
    ```
+2. **Clean up old build cache** (do NOT use `./gradlew clean` due to CMake codegen dependency constraints in React Native New Architecture):
+   ```bash
+   rm -rf android/app/build android/build android/app/.cxx
+   ```
+3. **Compile the Release APK**:
+   ```bash
+   cd android && ./gradlew assembleRelease 2>&1 | tee ../build-logs.txt
+   ```
+   *The final APK will be generated at:* `android/app/build/outputs/apk/release/app-release.apk`
