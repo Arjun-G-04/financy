@@ -49,11 +49,15 @@ export function useSheetsSync({ spreadsheetId, onSuccess, setActiveTab }: UseShe
     try {
       const accessToken = await GoogleAuthService.getFreshAccessToken();
       
-      // Fetches full Sheet1, allocates IDs in background to missing rows, updates sheet
-      const result = await GoogleSheetsService.getTransactionsFromSheet(spreadsheetId.trim(), accessToken);
+      // Fetches and processes only rows within the selected date range
+      const result = await GoogleSheetsService.getTransactionsFromSheet(
+        spreadsheetId.trim(),
+        accessToken,
+        startDate,
+        endDate
+      );
       
-      // Filter by the date range selected by user
-      const filtered = result.transactions.filter(t => t.date >= startDate && t.date <= endDate);
+      const filtered = result.transactions;
       
       // Sort: latest dates first
       filtered.sort((a, b) => b.date.localeCompare(a.date));
@@ -63,7 +67,7 @@ export function useSheetsSync({ spreadsheetId, onSuccess, setActiveTab }: UseShe
       Toast.show({
         type: 'success',
         text1: 'Sync Complete',
-        text2: `Synced ${result.transactions.length} rows. Found ${filtered.length} in date range.`,
+        text2: `Synced ${filtered.length} rows in selected range.`,
       });
 
       if (onSuccess) {

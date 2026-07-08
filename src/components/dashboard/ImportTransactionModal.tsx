@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   StyleSheet,
   View,
@@ -13,11 +13,12 @@ import {
 import { SheetTransaction } from '@/services/googleSheets';
 import { Colors, Spacing } from '@/constants/theme';
 import Toast from 'react-native-toast-message';
+import { DatabaseService, Category } from '@/services/database';
 
 interface ImportTransactionModalProps {
   transaction: SheetTransaction | null;
   onClose: () => void;
-  onConfirm: (name: string) => void;
+  onConfirm: (name: string, category: string | null) => void;
   currencySymbol: string;
 }
 
@@ -31,6 +32,18 @@ export function ImportTransactionModal({
   const colors = Colors[scheme === 'unspecified' || !scheme ? 'dark' : scheme];
   
   const [importNameInput, setImportNameInput] = useState('');
+  const [importCategory, setImportCategory] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    try {
+      const cats = DatabaseService.getCategories();
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCategories(cats);
+    } catch (e) {
+      console.error('Failed to load categories in ImportTransactionModal:', e);
+    }
+  }, []);
 
   const handleConfirmImport = () => {
     if (!importNameInput.trim()) {
@@ -41,7 +54,7 @@ export function ImportTransactionModal({
       });
       return;
     }
-    onConfirm(importNameInput.trim());
+    onConfirm(importNameInput.trim(), importCategory);
   };
 
   if (!transaction) return null;
@@ -129,6 +142,42 @@ export function ImportTransactionModal({
                 value={importNameInput}
                 onChangeText={setImportNameInput}
               />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Category</Text>
+              {categories.length === 0 ? (
+                <Text style={{ color: colors.textSecondary, fontSize: 13, fontStyle: 'italic' }}>
+                  No categories available. Add them in Settings.
+                </Text>
+              ) : (
+                <View style={styles.categoryChipsContainer}>
+                  {categories.map(cat => {
+                    const isSelected = importCategory === cat.name;
+                    return (
+                      <TouchableOpacity
+                        key={cat.id}
+                        style={[
+                          styles.categoryChip,
+                          { borderColor: colors.backgroundSelected },
+                          isSelected && { backgroundColor: colors.text, borderColor: colors.text }
+                        ]}
+                        onPress={() => setImportCategory(isSelected ? null : cat.name)}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.categoryChipText,
+                            { color: isSelected ? colors.background : colors.text }
+                          ]}
+                        >
+                          {cat.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              )}
             </View>
 
             <View style={styles.importActionsBlock}>
@@ -266,5 +315,21 @@ const styles = StyleSheet.create({
   importActBtnText: {
     fontSize: 14,
     fontWeight: '700',
+  },
+  categoryChipsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+  categoryChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
+    borderWidth: 1.5,
+  },
+  categoryChipText: {
+    fontSize: 12,
+    fontWeight: '600',
   },
 });

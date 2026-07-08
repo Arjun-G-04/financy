@@ -69,7 +69,7 @@ export function ImportTab({
     setActiveImportTx(tx);
   };
 
-  const handleConfirmImport = (customName: string) => {
+  const handleConfirmImport = (customName: string, category: string | null) => {
     if (!activeImportTx) return;
 
     try {
@@ -79,6 +79,7 @@ export function ImportTab({
         type: activeImportTx.type,
         amount: activeImportTx.amount,
         name: customName,
+        category: category,
       };
 
       DatabaseService.saveTransaction(localTx);

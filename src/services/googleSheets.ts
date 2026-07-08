@@ -13,21 +13,27 @@ export interface SheetFetchResult {
   transactions: SheetTransaction[];
 }
 
-export const parseDateDMYToYMD = (dateStr: string): string => {
-  if (!dateStr) return new Date().toISOString().split('T')[0];
+export const parseDateDMYToYMD = (dateStr: string): string | null => {
+  if (!dateStr) return null;
   const clean = dateStr.trim();
   
   // If already in YYYY-MM-DD format, return as-is
   if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) return clean;
   
   const parts = clean.split(/[-/]/);
-  if (parts.length !== 3) return new Date().toISOString().split('T')[0];
+  if (parts.length !== 3) return null;
   let [d, m, y] = parts;
   d = d.padStart(2, '0');
   m = m.padStart(2, '0');
   if (y.length === 2) {
     y = '20' + y;
   }
+  const day = parseInt(d, 10);
+  const month = parseInt(m, 10);
+  const year = parseInt(y, 10);
+  if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return null;
+  
   return `${y}-${m}-${d}`;
 };
 
@@ -113,7 +119,12 @@ export const GoogleSheetsService = {
   /**
    * Fetches sheet, generates missing IDs, writes them back, and returns all parsed transactions
    */
-  async getTransactionsFromSheet(spreadsheetId: string, accessToken: string): Promise<SheetFetchResult> {
+  async getTransactionsFromSheet(
+    spreadsheetId: string,
+    accessToken: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<SheetFetchResult> {
     try {
       // 1. Fetch metadata to get title
       const meta = await this.fetchSpreadsheet(spreadsheetId, accessToken);
@@ -149,6 +160,15 @@ export const GoogleSheetsService = {
         const isRowEmpty = row.every(cell => !cell || cell.trim() === '');
         if (isRowEmpty) continue;
 
+        // Parse date first to filter out early
+        const rawDate = row[dateIdx] || '';
+        const parsedDate = parseDateDMYToYMD(rawDate);
+        if (!parsedDate) continue;
+
+        // Date range filtering
+        if (startDate && parsedDate < startDate) continue;
+        if (endDate && parsedDate > endDate) continue;
+
         // Ensure row has enough cells up to idIdx
         while (row.length <= idIdx) {
           row.push('');
@@ -156,7 +176,7 @@ export const GoogleSheetsService = {
 
         let id = row[idIdx]?.trim();
 
-        // 3. Allocate ID if missing
+        // 3. Allocate ID if missing (only for rows inside the date range!)
         if (!id) {
           id = this.generateUniqueId();
           row[idIdx] = id; // update local representation
@@ -176,9 +196,6 @@ export const GoogleSheetsService = {
         }
 
         // Parse content
-        const rawDate = row[dateIdx] || '';
-        const parsedDate = parseDateDMYToYMD(rawDate);
-        
         const rawType = (row[typeIdx] || '').toLowerCase().trim();
         const type: 'credit' | 'debit' = rawType.includes('credit') ? 'credit' : 'debit';
         
