@@ -22,6 +22,13 @@ interface ImportTransactionModalProps {
   currencySymbol: string;
 }
 
+const fontTitle = 'Outfit-Bold';
+const fontText = 'Outfit-Regular';
+const fontLight = 'Outfit-Regular';
+const fontNumber = 'SpaceMono-Bold';
+
+import { getCategoryColor } from '@/utils/category';
+
 export function ImportTransactionModal({
   transaction,
   onClose,
@@ -100,7 +107,7 @@ export function ImportTransactionModal({
                 {/* Type Tile */}
                 <View style={[styles.tileCard, { flex: 0.6, backgroundColor: colors.background, borderColor: colors.backgroundSelected }]}>
                   <Text style={[styles.tileLabel, { color: colors.textSecondary }]}>TYPE</Text>
-                  <Text style={[styles.tileValue, { color: transaction.type === 'credit' ? colors.text : '#F43F5E', fontWeight: 'bold' }]} numberOfLines={1}>
+                  <Text style={[styles.tileValue, { color: transaction.type === 'credit' ? colors.emerald : colors.rose }]} numberOfLines={1}>
                     {transaction.type === 'credit' ? 'C' : 'D'}
                   </Text>
                 </View>
@@ -133,8 +140,6 @@ export function ImportTransactionModal({
                     color: colors.text,
                     borderColor: colors.backgroundSelected,
                     backgroundColor: colors.background,
-                    height: 54,
-                    fontSize: 15,
                   }
                 ]}
                 placeholder="Enter custom description"
@@ -147,28 +152,30 @@ export function ImportTransactionModal({
             <View style={styles.inputGroup}>
               <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Category</Text>
               {categories.length === 0 ? (
-                <Text style={{ color: colors.textSecondary, fontSize: 13, fontStyle: 'italic' }}>
+                <Text style={{ color: colors.textSecondary, fontSize: 13, fontStyle: 'italic', fontFamily: fontLight }}>
                   No categories available. Add them in Settings.
                 </Text>
               ) : (
                 <View style={styles.categoryChipsContainer}>
                   {categories.map(cat => {
                     const isSelected = importCategory === cat.name;
+                    const catColor = getCategoryColor(cat.name);
                     return (
                       <TouchableOpacity
                         key={cat.id}
                         style={[
                           styles.categoryChip,
-                          { borderColor: colors.backgroundSelected },
-                          isSelected && { backgroundColor: colors.text, borderColor: colors.text }
+                          { backgroundColor: colors.background },
+                          isSelected && { backgroundColor: catColor + '15' }
                         ]}
                         onPress={() => setImportCategory(isSelected ? null : cat.name)}
                         activeOpacity={0.7}
                       >
+                        <View style={[styles.chipDot, { backgroundColor: catColor }]} />
                         <Text
                           style={[
                             styles.categoryChipText,
-                            { color: isSelected ? colors.background : colors.text }
+                            { color: isSelected ? catColor : colors.text }
                           ]}
                         >
                           {cat.name}
@@ -215,11 +222,9 @@ const styles = StyleSheet.create({
   importDialogContent: {
     width: '90%',
     maxWidth: 450,
-    borderRadius: 24,
-    paddingHorizontal: Spacing.five,
-    paddingTop: Spacing.four,
-    paddingBottom: Spacing.five,
-    gap: Spacing.four,
+    borderRadius: 4,
+    padding: Spacing.three,
+    gap: Spacing.two,
     overflow: 'hidden',
     shadowColor: '#000000',
     shadowOffset: { width: 0, height: 10 },
@@ -233,13 +238,14 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   importDialogTitle: {
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.5,
+    fontFamily: fontTitle,
+    fontSize: 18,
+    letterSpacing: -0.4,
+    marginBottom: Spacing.one,
   },
   importDialogSubtitle: {
+    fontFamily: fontLight,
     fontSize: 12,
-    fontWeight: '500',
   },
   tilesContainer: {
     gap: Spacing.two,
@@ -253,7 +259,7 @@ const styles = StyleSheet.create({
   },
   tileCard: {
     flex: 1,
-    borderRadius: 12,
+    borderRadius: 4,
     borderWidth: 1,
     padding: Spacing.two,
     alignItems: 'center',
@@ -262,74 +268,85 @@ const styles = StyleSheet.create({
   },
   tileCardFull: {
     width: '100%',
-    borderRadius: 12,
+    borderRadius: 4,
     borderWidth: 1,
     padding: Spacing.three,
     minHeight: 70,
   },
   tileLabel: {
+    fontFamily: fontTitle,
     fontSize: 9,
-    fontWeight: '800',
     letterSpacing: 0.8,
     marginBottom: 4,
   },
   tileValue: {
+    fontFamily: fontNumber,
     fontSize: 13,
-    fontWeight: '700',
   },
   tileValueLarge: {
+    fontFamily: fontTitle,
     fontSize: 16,
-    fontWeight: '700',
     lineHeight: 22,
   },
   inputGroup: {
     gap: Spacing.one,
   },
   inputLabel: {
+    fontFamily: fontTitle,
     fontSize: 12,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   textInput: {
-    height: 48,
-    borderRadius: 12,
+    fontFamily: fontText,
+    height: 40,
+    borderRadius: 4,
     borderWidth: 1,
-    paddingHorizontal: Spacing.three,
+    paddingHorizontal: Spacing.two,
     fontSize: 14,
   },
   importActionsBlock: {
     flexDirection: 'row',
-    gap: Spacing.two,
-    marginTop: Spacing.one,
+    gap: Spacing.three,
+    marginTop: Spacing.two,
+    width: '100%',
   },
   importActBtn: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
+    height: 40,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   importCancelBtn: {
-    borderWidth: 1.5,
+    borderWidth: 1,
   },
   importConfirmBtn: {},
   importActBtnText: {
+    fontFamily: fontTitle,
     fontSize: 14,
-    fontWeight: '700',
   },
   categoryChipsContainer: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: Spacing.two,
-    marginTop: Spacing.one,
+    paddingVertical: Spacing.one,
   },
   categoryChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
-    borderWidth: 1.5,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: Spacing.two,
+    height: 30,
+    borderRadius: 4,
+    marginRight: 2,
+  },
+  chipDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginRight: 6,
   },
   categoryChipText: {
+    fontFamily: fontTitle,
     fontSize: 12,
-    fontWeight: '600',
   },
 });

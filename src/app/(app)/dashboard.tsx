@@ -14,12 +14,13 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Svg, Path, Defs, RadialGradient, Stop, Circle, Rect } from 'react-native-svg';
 import { useLocalLedger } from '@/hooks/useLocalLedger';
 import { HomeTab } from '@/components/dashboard/HomeTab';
+import { ReconcileTab } from '@/components/dashboard/ReconcileTab';
 import { ImportTab } from '@/components/dashboard/ImportTab';
 import { SettingsTab } from '@/components/dashboard/SettingsTab';
 import { Colors, Spacing, MaxContentWidth } from '@/constants/theme';
 import * as SecureStore from 'expo-secure-store';
 
-type ActiveTab = 'home' | 'import' | 'settings';
+type ActiveTab = 'home' | 'reconcile' | 'import' | 'settings';
 
 export default function DashboardScreen() {
   const scheme = useColorScheme();
@@ -122,6 +123,13 @@ export default function DashboardScreen() {
             />
           )}
 
+          {activeTab === 'reconcile' && (
+            <ReconcileTab
+              localTransactions={localTransactions}
+              currencySymbol={currencySymbol}
+            />
+          )}
+
           {activeTab === 'import' && (
             <ImportTab
               spreadsheetId={spreadsheetId}
@@ -183,6 +191,18 @@ export default function DashboardScreen() {
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" style={{ opacity: activeTab === 'home' ? 1.0 : 0.4 }}>
               <Path d="M3 9.5L12 3L21 9.5V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9.5Z" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
               <Path d="M9 21V12H15V21" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </Svg>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => setActiveTab('reconcile')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.pillIndicator}>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" style={{ opacity: activeTab === 'reconcile' ? 1.0 : 0.4 }}>
+              <Path d="M12 3v18M3 21h18M12 7H4.5M12 7h7.5M4.5 7L3 13h3L4.5 7zm15 0L18 13h3l-1.5-6z" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
             </Svg>
           </View>
         </TouchableOpacity>

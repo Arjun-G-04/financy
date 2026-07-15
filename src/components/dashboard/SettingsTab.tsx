@@ -24,6 +24,9 @@ interface SettingsTabProps {
   setCurrencySymbol: (symbol: string) => void;
 }
 
+const fontTitle = 'Outfit-Bold';
+const fontLight = 'Outfit-Regular';
+
 export function SettingsTab({
   spreadsheetId,
   setSpreadsheetId,
@@ -168,31 +171,163 @@ export function SettingsTab({
         return;
       }
 
-      // CSV Content with UTF-8 BOM to ensure Excel opens it correctly
-      let csvContent = '\ufeffdate,txn name,category,type,amt\n';
+      // Fetch reconciliation values from SecureStore in parallel
+      const [ccDebt, hdfc, kvb, cash, credits, lastUpdated] = await Promise.all([
+        SecureStore.getItemAsync('reconcile_cc_debt').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_hdfc_balance').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_kvb_balance').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_cash_balance').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_credits_owed').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_last_updated').then(val => val || 'N/A'),
+      ]);
 
+
+      // Math for reconciliation sheet
+      let ledgerCredit = 0;
+      let ledgerDebit = 0;
       transactions.forEach(tx => {
-        const date = tx.date;
-        const name = `"${tx.name.replace(/"/g, '""')}"`;
-        const category = tx.category ? `"${tx.category.replace(/"/g, '""')}"` : '""';
-        const type = tx.type;
-        const amount = tx.amount.toFixed(2);
+        if (tx.type === 'credit') {
+          ledgerCredit += tx.amount;
+        } else {
+          ledgerDebit += tx.amount;
+        }
+      });
+      const ledgerNet = ledgerCredit - ledgerDebit;
 
-        csvContent += `${date},${name},${category},${type},${amount}\n`;
+      const numCcDebt = parseFloat(ccDebt) || 0;
+      const numHdfc = parseFloat(hdfc) || 0;
+      const numKvb = parseFloat(kvb) || 0;
+      const numCash = parseFloat(cash) || 0;
+      const numCredits = parseFloat(credits) || 0;
+
+      const theoreticalMoney = ledgerNet + numCcDebt;
+      const actualMoney = numHdfc + numKvb + numCash + numCredits;
+      const netDifference = theoreticalMoney - actualMoney;
+
+      // Helper to escape XML special characters
+      const escapeXml = (str: string) => {
+        return str.replace(/[<>&'"]/g, (c) => {
+          switch (c) {
+            case '<': return '&lt;';
+            case '>': return '&gt;';
+            case '&': return '&amp;';
+            case '\'': return '&apos;';
+            case '"': return '&quot;';
+            default: return c;
+          }
+        });
+      };
+
+      // Compile Ledger rows
+      let ledgerRows = '';
+      transactions.forEach(tx => {
+        const date = escapeXml(tx.date);
+        const name = escapeXml(tx.name);
+        const category = tx.category ? escapeXml(tx.category) : '';
+        const type = escapeXml(tx.type);
+        const amount = tx.amount;
+
+        ledgerRows += `\n   <Row>
+    <Cell><Data ss:Type="String">${date}</Data></Cell>
+    <Cell><Data ss:Type="String">${name}</Data></Cell>
+    <Cell><Data ss:Type="String">${category}</Data></Cell>
+    <Cell><Data ss:Type="String">${type}</Data></Cell>
+    <Cell><Data ss:Type="Number">${amount}</Data></Cell>
+   </Row>`;
       });
 
-      const filename = `financy_ledger_${Date.now()}.csv`;
+      // Compile Reconciliation rows
+      const reconRows = `
+   <Row>
+     <Cell><Data ss:Type="String">Last Reconciled Timestamp</Data></Cell>
+     <Cell><Data ss:Type="String">${escapeXml(lastUpdated)}</Data></Cell>
+   </Row>
+   <Row></Row>
+   <Row>
+     <Cell ss:StyleID="BoldStyle"><Data ss:Type="String">Metric</Data></Cell>
+     <Cell ss:StyleID="BoldStyle"><Data ss:Type="String">Value</Data></Cell>
+   </Row>
+   <Row>
+     <Cell><Data ss:Type="String">Ledger Net Balance</Data></Cell>
+     <Cell><Data ss:Type="Number">${ledgerNet.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row>
+     <Cell><Data ss:Type="String">Credit Card Unpaid Bill (CC Debt)</Data></Cell>
+     <Cell><Data ss:Type="Number">${numCcDebt.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row>
+     <Cell ss:StyleID="BoldStyle"><Data ss:Type="String">Total Theoretical Money</Data></Cell>
+     <Cell ss:StyleID="BoldStyle"><Data ss:Type="Number">${theoreticalMoney.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row></Row>
+   <Row>
+     <Cell><Data ss:Type="String">HDFC Bank Balance</Data></Cell>
+     <Cell><Data ss:Type="Number">${numHdfc.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row>
+     <Cell><Data ss:Type="String">KVB Bank Balance</Data></Cell>
+     <Cell><Data ss:Type="Number">${numKvb.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row>
+     <Cell><Data ss:Type="String">Cash Balance</Data></Cell>
+     <Cell><Data ss:Type="Number">${numCash.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row>
+     <Cell><Data ss:Type="String">My Credit (Owed by Others)</Data></Cell>
+     <Cell><Data ss:Type="Number">${numCredits.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row>
+     <Cell ss:StyleID="BoldStyle"><Data ss:Type="String">Total Actual Money</Data></Cell>
+     <Cell ss:StyleID="BoldStyle"><Data ss:Type="Number">${actualMoney.toFixed(2)}</Data></Cell>
+   </Row>
+   <Row></Row>
+   <Row>
+     <Cell><Data ss:Type="String">Net Difference</Data></Cell>
+     <Cell><Data ss:Type="Number">${netDifference.toFixed(2)}</Data></Cell>
+   </Row>`;
+
+      // Combine into Excel XML Spreadsheet 2003 workbook
+      const xmlContent = `<?xml version="1.0" encoding="utf-8"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <Styles>
+   <Style ss:ID="BoldStyle">
+     <Font ss:Bold="1"/>
+   </Style>
+ </Styles>
+ <Worksheet ss:Name="Ledger">
+  <Table>
+   <Row>
+    <Cell><Data ss:Type="String">Date</Data></Cell>
+    <Cell><Data ss:Type="String">Name</Data></Cell>
+    <Cell><Data ss:Type="String">Category</Data></Cell>
+    <Cell><Data ss:Type="String">Type</Data></Cell>
+    <Cell><Data ss:Type="String">Amount</Data></Cell>
+   </Row>${ledgerRows}
+  </Table>
+ </Worksheet>
+ <Worksheet ss:Name="Reconciliation">
+  <Table>${reconRows}
+  </Table>
+ </Worksheet>
+</Workbook>`;
+
+      const filename = `financy_export_${Date.now()}.xls`;
       const fileUri = `${FileSystem.documentDirectory}${filename}`;
 
-      await FileSystem.writeAsStringAsync(fileUri, csvContent, {
+      await FileSystem.writeAsStringAsync(fileUri, xmlContent, {
         encoding: FileSystem.EncodingType.UTF8,
       });
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(fileUri, {
-          mimeType: 'text/csv',
-          dialogTitle: 'Export Ledger to Excel/CSV',
-          UTI: 'public.comma-separated-values-text',
+          mimeType: 'application/vnd.ms-excel',
+          dialogTitle: 'Export Ledger to Excel',
+          UTI: 'com.microsoft.excel.xls',
         });
       } else {
         Toast.show({
@@ -201,7 +336,8 @@ export function SettingsTab({
           text2: 'Sharing is not available on this device',
         });
       }
-    } catch {
+    } catch (e) {
+      console.error(e);
       Toast.show({
         type: 'error',
         text1: 'Export Failed',
@@ -212,6 +348,8 @@ export function SettingsTab({
 
   return (
     <View style={styles.viewSection}>
+      <Text style={[styles.pageHeading, { color: colors.text }]}>Settings</Text>
+
       {/* Currency Selector Setting */}
       <View style={[styles.settingsCard, { backgroundColor: colors.backgroundElement }]}>
         <View style={styles.settingsHeader}>
@@ -255,8 +393,8 @@ export function SettingsTab({
       <View style={[styles.settingsCard, { backgroundColor: colors.backgroundElement }]}>
         <View style={styles.settingsHeader}>
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-            <Path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke={colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            <Path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke={colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <Path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            <Path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </Svg>
           <Text style={[styles.settingsTitle, { color: colors.text }]}>Google Sheet Connection</Text>
         </View>
@@ -309,7 +447,7 @@ export function SettingsTab({
       <View style={[styles.settingsCard, { backgroundColor: colors.backgroundElement }]}>
         <View style={styles.settingsHeader}>
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-            <Path d="M4 6H20M4 12H20M4 18H20" stroke={colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <Path d="M4 6H20M4 12H20M4 18H20" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </Svg>
           <Text style={[styles.settingsTitle, { color: colors.text }]}>Manage Categories</Text>
         </View>
@@ -328,7 +466,7 @@ export function SettingsTab({
             onPress={handleAddCategory}
             activeOpacity={0.8}
           >
-            <Text style={{ color: colors.background, fontWeight: '700', fontSize: 13 }}>Add</Text>
+            <Text style={[styles.addCategoryBtnText, { color: colors.background }]}>Add</Text>
           </TouchableOpacity>
         </View>
 
@@ -339,7 +477,7 @@ export function SettingsTab({
             </Text>
           ) : (
             categories.map(cat => (
-              <View key={cat.id} style={[styles.categoryRow, { borderBottomColor: colors.background }]}>
+              <View key={cat.id} style={[styles.categoryRow, { borderBottomColor: colors.backgroundSelected }]}>
                 <Text style={[styles.categoryRowName, { color: colors.text }]}>{cat.name}</Text>
                 <TouchableOpacity
                   style={styles.categoryDeleteBtn}
@@ -347,7 +485,7 @@ export function SettingsTab({
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <Svg width={16} height={16} viewBox="0 0 24 24" fill="none">
-                    <Path d="M3 6H5H21M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6" stroke="#F43F5E" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    <Path d="M3 6H5H21M19 6V20C19 20.5304 18.7893 21.0391 18.4142 21.4142C18.0391 21.7893 17.5304 22 17 22H7C6.46957 22 5.96086 21.7893 5.58579 21.4142C5.21071 21.0391 5 20.5304 5 20V6M8 6V4C8 3.46957 8.21071 2.96086 8.58579 2.58579C8.96086 2.21071 9.46957 2 10 2H14C14.5304 2 15.0391 2.21071 15.4142 2.58579C15.7893 2.96086 16 3.46957 16 4V6" stroke="#F43F5E" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
                   </Svg>
                 </TouchableOpacity>
               </View>
@@ -360,19 +498,19 @@ export function SettingsTab({
       <View style={[styles.settingsCard, { backgroundColor: colors.backgroundElement }]}>
         <View style={styles.settingsHeader}>
           <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
-            <Path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke={colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <Path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
           </Svg>
-          <Text style={[styles.settingsTitle, { color: colors.text }]}>Export Ledger</Text>
+          <Text style={[styles.settingsTitle, { color: colors.text }]}>Export Ledger & Reconciliation</Text>
         </View>
         <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
-          Download your local ledger as an Excel-compatible CSV spreadsheet.
+          Download your local ledger and reconciliation data as a multi-sheet Excel spreadsheet.
         </Text>
         <TouchableOpacity
           style={[styles.primaryButton, { backgroundColor: colors.text }]}
           onPress={handleExportExcel}
           activeOpacity={0.8}
         >
-          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Export to Excel (CSV)</Text>
+          <Text style={[styles.primaryButtonText, { color: colors.background }]}>Export to Excel</Text>
         </TouchableOpacity>
       </View>
 
@@ -402,13 +540,20 @@ export function SettingsTab({
 }
 
 const styles = StyleSheet.create({
+  pageHeading: {
+    fontFamily: fontTitle,
+    fontSize: 24,
+    letterSpacing: -0.6,
+    marginBottom: 8,
+    marginTop: 8,
+  },
   viewSection: {
     width: '100%',
-    gap: Spacing.four,
+    gap: Spacing.three,
   },
   settingsCard: {
-    borderRadius: 20,
-    padding: Spacing.four,
+    borderRadius: 4,
+    padding: 20,
     gap: Spacing.three,
   },
   settingsHeader: {
@@ -418,12 +563,14 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.one,
   },
   settingsTitle: {
+    fontFamily: fontTitle,
     fontSize: 16,
-    fontWeight: '700',
+    letterSpacing: -0.4,
   },
   inputLabel: {
+    fontFamily: fontTitle,
     fontSize: 12,
-    fontWeight: '600',
+    letterSpacing: -0.1,
   },
   currencyToggleContainer: {
     flexDirection: 'row',
@@ -431,66 +578,67 @@ const styles = StyleSheet.create({
   },
   currencyToggleBtn: {
     flex: 1,
-    height: 48,
-    borderRadius: 12,
+    height: 40,
+    borderRadius: 4,
     borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
   },
   currencyToggleText: {
+    fontFamily: fontTitle,
     fontSize: 14,
-    fontWeight: '700',
   },
   savedIdBlock: {
     gap: Spacing.two,
   },
   idDisplayBox: {
-    height: 48,
-    borderRadius: 12,
+    height: 40,
+    borderRadius: 4,
     borderWidth: 1,
     justifyContent: 'center',
-    paddingHorizontal: Spacing.three,
+    paddingHorizontal: Spacing.two,
   },
   idDisplayText: {
+    fontFamily: fontLight,
     fontSize: 14,
-    fontWeight: '500',
   },
   secondaryButton: {
-    height: 48,
-    borderRadius: 12,
+    height: 40,
+    borderRadius: 4,
     borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: Spacing.one,
   },
   secondaryButtonText: {
+    fontFamily: fontTitle,
     fontSize: 14,
-    fontWeight: '700',
   },
   inputGroup: {
     gap: Spacing.one,
   },
   textInput: {
-    height: 48,
-    borderRadius: 12,
+    fontFamily: fontLight,
+    height: 40,
+    borderRadius: 4,
     borderWidth: 1,
-    paddingHorizontal: Spacing.three,
+    paddingHorizontal: Spacing.two,
     fontSize: 14,
   },
   primaryButton: {
-    height: 48,
-    borderRadius: 12,
+    height: 40,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: Spacing.two,
   },
   primaryButtonText: {
+    fontFamily: fontTitle,
     fontSize: 14,
-    fontWeight: '700',
   },
   profileCard: {
-    borderRadius: 20,
-    padding: Spacing.four,
+    borderRadius: 4,
+    padding: 20,
     gap: Spacing.three,
   },
   userInfoRow: {
@@ -501,32 +649,34 @@ const styles = StyleSheet.create({
   avatarBox: {
     width: 48,
     height: 48,
-    borderRadius: 24,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
   },
   avatarText: {
+    fontFamily: fontTitle,
     fontSize: 18,
-    fontWeight: '700',
   },
   profileName: {
+    fontFamily: fontTitle,
     fontSize: 15,
-    fontWeight: '700',
+    letterSpacing: -0.2,
   },
   profileEmail: {
+    fontFamily: fontLight,
     fontSize: 13,
   },
   logoutButton: {
-    height: 48,
-    borderRadius: 12,
+    height: 40,
+    borderRadius: 4,
     borderWidth: 1.5,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: Spacing.one,
   },
   logoutButtonText: {
+    fontFamily: fontTitle,
     fontSize: 14,
-    fontWeight: '700',
     color: '#F43F5E',
   },
   addCategoryInputRow: {
@@ -535,17 +685,22 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   addCategoryBtn: {
-    height: 48,
-    borderRadius: 12,
+    height: 40,
+    borderRadius: 4,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: Spacing.four,
+  },
+  addCategoryBtnText: {
+    fontFamily: fontTitle,
+    fontSize: 13,
   },
   categoriesListContainer: {
     marginTop: Spacing.one,
     gap: Spacing.one,
   },
   emptyCategoriesText: {
+    fontFamily: fontLight,
     fontSize: 13,
     fontStyle: 'italic',
     paddingVertical: Spacing.two,
@@ -558,8 +713,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
   },
   categoryRowName: {
+    fontFamily: fontTitle,
     fontSize: 14,
-    fontWeight: '500',
   },
   categoryDeleteBtn: {
     padding: Spacing.one,

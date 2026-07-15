@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { GoogleAuthService } from '@/services/googleAuth';
 import { GoogleSheetsService, SheetTransaction } from '@/services/googleSheets';
+import { DatabaseService } from '@/services/database';
 import Toast from 'react-native-toast-message';
 
 interface UseSheetsSyncProps {
@@ -10,8 +11,23 @@ interface UseSheetsSyncProps {
 }
 
 export function useSheetsSync({ spreadsheetId, onSuccess, setActiveTab }: UseSheetsSyncProps) {
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [startDate, setStartDate] = useState(() => {
+    try {
+      const txs = DatabaseService.getTransactions();
+      if (txs.length > 0) {
+        return txs[0].date;
+      }
+    } catch (e) {
+      console.error('Failed to get transactions for default start date:', e);
+    }
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  });
+
+  const [endDate, setEndDate] = useState(() => {
+    const today = new Date();
+    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  });
   const [sheetTransactions, setSheetTransactions] = useState<SheetTransaction[]>([]);
   const [loadingSheet, setLoadingSheet] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
