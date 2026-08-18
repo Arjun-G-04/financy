@@ -9,6 +9,7 @@ import { Svg, Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import Swipeable from 'react-native-gesture-handler/Swipeable';
 import { LocalTransaction } from '@/services/database';
 import { Spacing } from '@/constants/theme';
+import { formatTime } from '@/utils/format';
 
 const fontTitle = 'Outfit-Bold';
 const fontNumber = 'SpaceMono-Bold';
@@ -92,6 +93,8 @@ export function SwipeableLedgerRow({
     );
   };
 
+  const formattedTime = tx.createdAt ? formatTime(tx.createdAt) : null;
+
   return (
     <Swipeable
       ref={swipeableRef}
@@ -135,9 +138,11 @@ export function SwipeableLedgerRow({
               {tx.name}
             </Text>
             <View style={styles.ledgerMetaRow}>
-              <Text style={[styles.ledgerDate, { color: colors.textSecondary }]}>
-                {tx.date.split('-').slice(1).reverse().join('/')}
-              </Text>
+              {formattedTime ? (
+                <Text style={[styles.ledgerTime, { color: colors.textSecondary }]}>
+                  {formattedTime}
+                </Text>
+              ) : null}
             </View>
           </View>
 
@@ -189,6 +194,11 @@ const styles = StyleSheet.create({
   ledgerDate: {
     fontFamily: fontNumberRegular,
     fontSize: 12,
+  },
+  ledgerTime: {
+    fontFamily: fontNumberRegular,
+    fontSize: 11,
+    opacity: 0.8,
   },
   ledgerRight: {
     alignItems: 'flex-end',

@@ -17,5 +17,6 @@ Docs: https://docs.expo.dev/versions/v56.0.0/
 - Routing: Expo Router (src/app). AuthProvider wraps root layout. Protection in src/context/AuthContext.tsx (redirects: unauth -> /, auth -> /(app)).
 - Design: Follow design-taste-frontend. Colors in src/constants/theme.ts (deep zinc/black, emerald/rose accents for dark mode).
 - Android: Focus exclusively on Android. Web and iOS are not supported or cared about. CLI tools (no emulator). Run via adb devices & pnpm expo run:android. Setup: brew install --cask android-commandlinetools android-platform-tools. ANDROID_HOME=/opt/homebrew/share/android-commandlinetools. Testing is exclusively on Android devices (no web SQLite fallback needed).
-- Code Review: When asking for code review, use `.agents/skills/thermo-nuclear-code-quality-review`.
+- Code Review: When asking for code review, use `.agents/skills/thermo-nuclear-code-quality-review` alongside `.agents/skills/vercel-react-native-skills`.
+- React Native Skills: Use `.agents/skills/vercel-react-native-skills` when writing React Native code as well as when reviewing React Native code (along with the code quality review skill).
 - Keyboard Avoidance: Use `behavior="padding"` for `KeyboardAvoidingView` inside `Modal` on Android. Do not use `height` (causes layout loop oscillation) or `undefined` (causes keyboard overlap).

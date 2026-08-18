@@ -14,11 +14,12 @@ import { SheetTransaction } from '@/services/googleSheets';
 import { Colors, Spacing } from '@/constants/theme';
 import Toast from 'react-native-toast-message';
 import { DatabaseService, Category } from '@/services/database';
+import { getCategoryColor } from '@/utils/category';
 
 interface ImportTransactionModalProps {
   transaction: SheetTransaction | null;
   onClose: () => void;
-  onConfirm: (name: string, category: string | null) => void;
+  onConfirm: (name: string, amount: number, category: string | null) => void;
   currencySymbol: string;
 }
 
@@ -26,8 +27,6 @@ const fontTitle = 'Outfit-Bold';
 const fontText = 'Outfit-Regular';
 const fontLight = 'Outfit-Regular';
 const fontNumber = 'SpaceMono-Bold';
-
-import { getCategoryColor } from '@/utils/category';
 
 export function ImportTransactionModal({
   transaction,
@@ -39,6 +38,9 @@ export function ImportTransactionModal({
   const colors = Colors[scheme === 'unspecified' || !scheme ? 'dark' : scheme];
   
   const [importNameInput, setImportNameInput] = useState('');
+  const [importAmountInput, setImportAmountInput] = useState(
+    transaction ? transaction.amount.toString() : ''
+  );
   const [importCategory, setImportCategory] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
 
@@ -53,6 +55,15 @@ export function ImportTransactionModal({
   }, []);
 
   const handleConfirmImport = () => {
+    const amt = parseFloat(importAmountInput);
+    if (isNaN(amt) || amt <= 0) {
+      Toast.show({
+        type: 'error',
+        text1: 'Invalid Amount',
+        text2: 'Please enter a valid positive amount',
+      });
+      return;
+    }
     if (!importNameInput.trim()) {
       Toast.show({
         type: 'error',
@@ -61,7 +72,7 @@ export function ImportTransactionModal({
       });
       return;
     }
-    onConfirm(importNameInput.trim(), importCategory);
+    onConfirm(importNameInput.trim(), amt, importCategory);
   };
 
   if (!transaction) return null;
@@ -129,6 +140,26 @@ export function ImportTransactionModal({
                   {transaction.merchant}
                 </Text>
               </View>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>Amount to Import ({currencySymbol})</Text>
+              <TextInput
+                style={[
+                  styles.textInput,
+                  {
+                    fontFamily: fontNumber,
+                    color: colors.text,
+                    borderColor: colors.backgroundSelected,
+                    backgroundColor: colors.background,
+                  }
+                ]}
+                placeholder="0.00"
+                placeholderTextColor={colors.textSecondary}
+                value={importAmountInput}
+                onChangeText={setImportAmountInput}
+                keyboardType="numeric"
+              />
             </View>
 
             <View style={styles.inputGroup}>

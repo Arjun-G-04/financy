@@ -14,6 +14,7 @@ export interface LocalTransaction {
   amount: number;
   name: string;
   category?: string | null;
+  createdAt?: number;
 }
 
 export const initDatabase = () => {
@@ -44,6 +45,13 @@ export const initDatabase = () => {
     } catch {
       // Column already exists, ignore
     }
+
+    // Migrate transactions table to add created_at column if missing
+    try {
+      db.execSync('ALTER TABLE transactions ADD COLUMN created_at INTEGER;');
+    } catch {
+      // Column already exists, ignore
+    }
   } catch (error) {
     console.error('Failed to initialize SQLite database:', error);
     throw error;
@@ -58,14 +66,16 @@ export const DatabaseService = {
 
   saveTransaction(tx: LocalTransaction) {
     const database = this.getDb();
+    const createdAt = tx.createdAt ?? Date.now();
     database.runSync(
-      `INSERT OR REPLACE INTO transactions (id, date, type, amount, name, category) VALUES (?, ?, ?, ?, ?, ?);`,
+      `INSERT OR REPLACE INTO transactions (id, date, type, amount, name, category, created_at) VALUES (?, ?, ?, ?, ?, ?, ?);`,
       tx.id,
       tx.date,
       tx.type,
       tx.amount,
       tx.name,
-      tx.category ?? null
+      tx.category ?? null,
+      createdAt
     );
   },
 
@@ -85,9 +95,33 @@ export const DatabaseService = {
       params.push(endDate);
     }
 
-    query += ` ORDER BY date DESC, id DESC`;
+    query += ` ORDER BY date DESC, COALESCE(created_at, 0) DESC, id DESC`;
 
-    return database.getAllSync<LocalTransaction>(query, ...params);
+    const rows = database.getAllSync<any>(query, ...params);
+    return rows.map((row) => {
+      let createdAt = row.created_at;
+      if (!createdAt) {
+        if (row.id.startsWith('manual_') || row.id.startsWith('tx_')) {
+          const parts = row.id.split('_');
+          const ts = parseInt(parts[1], 10);
+          if (!isNaN(ts) && ts > 0) {
+            createdAt = ts;
+          }
+        }
+        if (!createdAt && row.date) {
+          createdAt = new Date(row.date).getTime();
+        }
+      }
+      return {
+        id: row.id,
+        date: row.date,
+        type: row.type,
+        amount: row.amount,
+        name: row.name,
+        category: row.category ?? null,
+        createdAt: createdAt ?? Date.now(),
+      };
+    });
   },
 
   transactionExists(id: string): boolean {

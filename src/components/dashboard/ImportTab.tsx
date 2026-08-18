@@ -12,7 +12,6 @@ import { LocalTransaction, DatabaseService } from '@/services/database';
 import { Colors, Spacing } from '@/constants/theme';
 import { Svg, Path, Defs, RadialGradient, Stop, Rect } from 'react-native-svg';
 import Toast from 'react-native-toast-message';
-import { useSheetsSync } from '@/hooks/useSheetsSync';
 import { CustomDatePicker } from './CustomDatePicker';
 import { ImportTransactionModal } from './ImportTransactionModal';
 import { getCategoryColor } from '@/utils/category';
@@ -25,7 +24,14 @@ interface ImportTabProps {
   currencySymbol: string;
   localIds: Set<string>;
   onImportSuccess: () => void;
-  setActiveTab: (tab: 'home' | 'import' | 'settings') => void;
+  startDate: string;
+  setStartDate: (date: string) => void;
+  endDate: string;
+  setEndDate: (date: string) => void;
+  sheetTransactions: SheetTransaction[];
+  loadingSheet: boolean;
+  importError: string | null;
+  fetchSheetData: () => void;
 }
 
 const fontTitle = 'Outfit-Bold';
@@ -34,25 +40,20 @@ const fontNumber = 'SpaceMono-Bold';
 const fontNumberRegular = 'SpaceMono-Regular';
 
 export function ImportTab({
-  spreadsheetId,
   currencySymbol,
   localIds,
   onImportSuccess,
-  setActiveTab,
+  startDate,
+  setStartDate,
+  endDate,
+  setEndDate,
+  sheetTransactions,
+  loadingSheet,
+  importError,
+  fetchSheetData,
 }: ImportTabProps) {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'unspecified' || !scheme ? 'dark' : scheme];
-
-  const {
-    startDate,
-    setStartDate,
-    endDate,
-    setEndDate,
-    sheetTransactions,
-    loadingSheet,
-    importError,
-    fetchSheetData,
-  } = useSheetsSync({ spreadsheetId, setActiveTab });
 
   // Date picker states
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -78,7 +79,7 @@ export function ImportTab({
     setActiveImportTx(tx);
   };
 
-  const handleConfirmImport = (customName: string, category: string | null) => {
+  const handleConfirmImport = (customName: string, customAmount: number, category: string | null) => {
     if (!activeImportTx) return;
 
     try {
@@ -86,9 +87,10 @@ export function ImportTab({
         id: activeImportTx.id, // Keep matching ID to prevent duplicate imports
         date: activeImportTx.date,
         type: activeImportTx.type,
-        amount: activeImportTx.amount,
+        amount: customAmount,
         name: customName,
         category: category,
+        createdAt: Date.now(),
       };
 
       DatabaseService.saveTransaction(localTx);

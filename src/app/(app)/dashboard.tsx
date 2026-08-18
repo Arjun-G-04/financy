@@ -13,14 +13,17 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Svg, Path, Defs, RadialGradient, Stop, Circle, Rect } from 'react-native-svg';
 import { useLocalLedger } from '@/hooks/useLocalLedger';
+import { useSheetsSync } from '@/hooks/useSheetsSync';
 import { HomeTab } from '@/components/dashboard/HomeTab';
+import { AnalyticsTab } from '@/components/dashboard/AnalyticsTab';
+import { HistoryTab } from '@/components/dashboard/HistoryTab';
 import { ReconcileTab } from '@/components/dashboard/ReconcileTab';
 import { ImportTab } from '@/components/dashboard/ImportTab';
 import { SettingsTab } from '@/components/dashboard/SettingsTab';
 import { Colors, Spacing, MaxContentWidth } from '@/constants/theme';
 import * as SecureStore from 'expo-secure-store';
 
-type ActiveTab = 'home' | 'reconcile' | 'import' | 'settings';
+type ActiveTab = 'home' | 'analytics' | 'history' | 'reconcile' | 'import' | 'settings';
 
 export default function DashboardScreen() {
   const scheme = useColorScheme();
@@ -41,6 +44,22 @@ export default function DashboardScreen() {
     saveTransaction,
     deleteTransaction,
   } = useLocalLedger();
+
+  // Hook for Google Sheets sync state (persisted across tab switches)
+  const {
+    startDate: sheetStartDate,
+    setStartDate: setSheetStartDate,
+    endDate: sheetEndDate,
+    setEndDate: setSheetEndDate,
+    sheetTransactions,
+    loadingSheet,
+    importError: sheetImportError,
+    fetchSheetData,
+  } = useSheetsSync({
+    spreadsheetId,
+    onSuccess: refreshLocalLedger,
+    setActiveTab,
+  });
 
   // Load spreadsheet and currency settings
   useEffect(() => {
@@ -111,44 +130,65 @@ export default function DashboardScreen() {
       </View>
 
       <SafeAreaView style={styles.safeArea} edges={['top', 'left', 'right']}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          {activeTab === 'home' && (
-            <HomeTab
-              localTransactions={localTransactions}
-              currencySymbol={currencySymbol}
-              saveTransaction={saveTransaction}
-              deleteTransaction={deleteTransaction}
-              showForm={showAddForm}
-              setShowForm={setShowAddForm}
-            />
-          )}
+        {activeTab === 'home' ? (
+          <HomeTab
+            localTransactions={localTransactions}
+            currencySymbol={currencySymbol}
+            saveTransaction={saveTransaction}
+            deleteTransaction={deleteTransaction}
+            showForm={showAddForm}
+            setShowForm={setShowAddForm}
+          />
+        ) : (
+          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            {activeTab === 'analytics' && (
+              <AnalyticsTab
+                localTransactions={localTransactions}
+                currencySymbol={currencySymbol}
+              />
+            )}
 
-          {activeTab === 'reconcile' && (
-            <ReconcileTab
-              localTransactions={localTransactions}
-              currencySymbol={currencySymbol}
-            />
-          )}
+            {activeTab === 'history' && (
+              <HistoryTab
+                localTransactions={localTransactions}
+                currencySymbol={currencySymbol}
+              />
+            )}
 
-          {activeTab === 'import' && (
-            <ImportTab
-              spreadsheetId={spreadsheetId}
-              currencySymbol={currencySymbol}
-              localIds={localIds}
-              onImportSuccess={refreshLocalLedger}
-              setActiveTab={setActiveTab}
-            />
-          )}
+            {activeTab === 'reconcile' && (
+              <ReconcileTab
+                localTransactions={localTransactions}
+                currencySymbol={currencySymbol}
+              />
+            )}
 
-          {activeTab === 'settings' && (
-            <SettingsTab
-              spreadsheetId={spreadsheetId}
-              setSpreadsheetId={setSpreadsheetId}
-              currencySymbol={currencySymbol}
-              setCurrencySymbol={setCurrencySymbol}
-            />
-          )}
-        </ScrollView>
+            {activeTab === 'import' && (
+              <ImportTab
+                spreadsheetId={spreadsheetId}
+                currencySymbol={currencySymbol}
+                localIds={localIds}
+                onImportSuccess={refreshLocalLedger}
+                startDate={sheetStartDate}
+                setStartDate={setSheetStartDate}
+                endDate={sheetEndDate}
+                setEndDate={setSheetEndDate}
+                sheetTransactions={sheetTransactions}
+                loadingSheet={loadingSheet}
+                importError={sheetImportError}
+                fetchSheetData={fetchSheetData}
+              />
+            )}
+
+            {activeTab === 'settings' && (
+              <SettingsTab
+                spreadsheetId={spreadsheetId}
+                setSpreadsheetId={setSpreadsheetId}
+                currencySymbol={currencySymbol}
+                setCurrencySymbol={setCurrencySymbol}
+              />
+            )}
+          </ScrollView>
+        )}
 
         {/* Floating Action Button (FAB) at Bottom Right above bottom nav */}
         {activeTab === 'home' && (
@@ -191,6 +231,32 @@ export default function DashboardScreen() {
             <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" style={{ opacity: activeTab === 'home' ? 1.0 : 0.4 }}>
               <Path d="M3 9.5L12 3L21 9.5V20C21 20.5523 20.5523 21 20 21H4C3.44772 21 3 20.5523 3 20V9.5Z" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
               <Path d="M9 21V12H15V21" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </Svg>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => setActiveTab('analytics')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.pillIndicator}>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" style={{ opacity: activeTab === 'analytics' ? 1.0 : 0.4 }}>
+              <Path d="M21.21 15.89A10 10 0 1 1 8 2.83" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <Path d="M22 12A10 10 0 0 0 12 2V12Z" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </Svg>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.tabItem}
+          onPress={() => setActiveTab('history')}
+          activeOpacity={0.7}
+        >
+          <View style={styles.pillIndicator}>
+            <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" style={{ opacity: activeTab === 'history' ? 1.0 : 0.4 }}>
+              <Path d="M3 3v18h18" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+              <Path d="M19 9l-5 5-4-4-3 3" stroke={colors.text} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
             </Svg>
           </View>
         </TouchableOpacity>

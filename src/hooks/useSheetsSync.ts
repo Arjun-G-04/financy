@@ -7,7 +7,7 @@ import Toast from 'react-native-toast-message';
 interface UseSheetsSyncProps {
   spreadsheetId: string;
   onSuccess?: () => void;
-  setActiveTab?: (tab: 'home' | 'import' | 'settings') => void;
+  setActiveTab?: (tab: 'home' | 'analytics' | 'history' | 'reconcile' | 'import' | 'settings') => void;
 }
 
 export function useSheetsSync({ spreadsheetId, onSuccess, setActiveTab }: UseSheetsSyncProps) {
@@ -73,17 +73,21 @@ export function useSheetsSync({ spreadsheetId, onSuccess, setActiveTab }: UseShe
         endDate
       );
       
-      const filtered = result.transactions;
+      // Sort: latest dates first; if dates match, later rows in the sheet appear first
+      const indexed = result.transactions.map((tx, idx) => ({ tx, idx }));
+      indexed.sort((a, b) => {
+        const dateComp = b.tx.date.localeCompare(a.tx.date);
+        if (dateComp !== 0) return dateComp;
+        return b.idx - a.idx;
+      });
+      const sortedTransactions = indexed.map((item) => item.tx);
       
-      // Sort: latest dates first
-      filtered.sort((a, b) => b.date.localeCompare(a.date));
-
-      setSheetTransactions(filtered);
+      setSheetTransactions(sortedTransactions);
       
       Toast.show({
         type: 'success',
         text1: 'Sync Complete',
-        text2: `Synced ${filtered.length} rows in selected range.`,
+        text2: `Synced ${sortedTransactions.length} rows in selected range.`,
       });
 
       if (onSuccess) {

@@ -3,6 +3,7 @@ import { useColorScheme } from 'react-native';
 import { AuthProvider } from '@/context/AuthContext';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import Toast from 'react-native-toast-message';
+import { toastConfig } from '@/components/ui/CustomToast';
 import { useFonts } from 'expo-font';
 import { useEffect } from 'react';
 import * as SplashScreen from 'expo-splash-screen';
@@ -39,7 +40,7 @@ export default function RootLayout() {
             <Stack.Screen name="index" />
             <Stack.Screen name="(app)" />
           </Stack>
-          <Toast />
+          <Toast config={toastConfig} topOffset={50} />
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
