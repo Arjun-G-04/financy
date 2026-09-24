@@ -3,10 +3,10 @@
 A privacy-focused personal finance manager app built on Expo (React Native) and backed by your personal Google Sheets.
 
 ## Screenshots
-<img width="300" height="670" alt="Screenshot_2026-09-06-20-27-47-46 jpg" src="https://github.com/user-attachments/assets/eb573563-ea98-4a73-899e-08a6af8b2b66" />
-<img width="300" height="670" alt="Screenshot_2026-09-06-20-27-23-72_2b45600f7f86ac438a3015479376e208 jpg" src="https://github.com/user-attachments/assets/fbfebb6f-0499-4676-bb9a-98e9039d6534" />
-<img width="300" height="670" alt="Screenshot_2026-09-06-20-28-30-00_2b45600f7f86ac438a3015479376e208 jpg" src="https://github.com/user-attachments/assets/57231052-c0fc-4279-8001-13d17f7bcebf" />
-<img width="300" height="670" alt="Screenshot_2026-09-06-20-28-13-64_2b45600f7f86ac438a3015479376e208 jpg" src="https://github.com/user-attachments/assets/c32c8a7f-2efa-4379-b194-48ed65321aad" />
+<img width="100" height="223" alt="Screenshot_2026-09-06-20-27-47-46 jpg" src="https://github.com/user-attachments/assets/eb573563-ea98-4a73-899e-08a6af8b2b66" />
+<img width="100" height="223" alt="Screenshot_2026-09-06-20-27-23-72_2b45600f7f86ac438a3015479376e208 jpg" src="https://github.com/user-attachments/assets/fbfebb6f-0499-4676-bb9a-98e9039d6534" />
+<img width="100" height="223" alt="Screenshot_2026-09-06-20-28-30-00_2b45600f7f86ac438a3015479376e208 jpg" src="https://github.com/user-attachments/assets/57231052-c0fc-4279-8001-13d17f7bcebf" />
+<img width="100" height="223" alt="Screenshot_2026-09-06-20-28-13-64_2b45600f7f86ac438a3015479376e208 jpg" src="https://github.com/user-attachments/assets/c32c8a7f-2efa-4379-b194-48ed65321aad" />
 
 
 ## Features
