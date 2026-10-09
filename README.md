@@ -1,84 +1,56 @@
-# Financy
+# sv
 
-A privacy-focused personal finance manager app built on Expo (React Native) and backed by your personal Google Sheets.
+Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
-## Features
+## Creating a project
 
-- **Google Sheets Database**: Direct sync with Google Sheets. No intermediate servers store your financial transactions or banking keys.
-- **Google Sign-In**: Native Google OAuth2 authentication requesting read-only access to sheets.
-- **Interactive Financial Dashboard**: Dynamic overview of income, expenses, and savings with transaction ledgers.
+If you're seeing this, you've probably already done this step. Congrats!
 
-## Tech Stack
-
-- **Framework**: [Expo](https://expo.dev/) (React Native) with [Expo Router](https://docs.expo.dev/router/introduction/) (v56 / SDK 56)
-- **Language**: TypeScript
-- **Auth**: `@react-native-google-signin/google-signin`
-- **Secure Storage**: `expo-secure-store`
-- **Package Manager**: `pnpm`
-
----
-
-## Get Started
-
-### 1. Install Dependencies
-
-```bash
-pnpm install
+```sh
+# create a new project
+npx sv create my-app
 ```
 
-### 2. Start the App
+To recreate this project with the same configuration:
 
-Start the local Metro bundler:
-```bash
-pnpm start
+```sh
+# recreate this project
+pnpm dlx sv@1.1.1 create --template minimal --types ts --add tailwindcss="plugins:none" sveltekit-adapter="adapter:auto" --install pnpm /tmp/sveltekit-init
 ```
 
----
+## Adding features
 
-## Google Cloud Console OAuth Setup (For Live Sync)
+Add features to your project with `sv add`:
 
-To connect the application to your actual Google Sheets, you must register client credentials:
+```sh
+npx sv add
+```
 
-1. **Google Cloud Project**: Go to the [Google Cloud Console](https://console.cloud.google.com/) and create a new project.
-2. **Enable Sheets API**: Search for "Google Sheets API" in the library and click **Enable**.
-3. **Configure OAuth Consent Screen**:
-   - Set user type to External (or Internal if under a GSuite domain).
-   - Add the scopes: `.../auth/userinfo.profile`, `.../auth/userinfo.email`, and `https://www.googleapis.com/auth/spreadsheets.readonly`.
-   - Add your test user emails.
-4. **Create OAuth Client Credentials**:
-   - **Web Application Client ID**: Required for Android and Web. Use this client ID inside the app configuration.
-   - **Android Client ID**: Create an Android credential. Register the Package Name as `com.anonymous.financy`. Generate and register your SHA-1 signing certificate.
-5. **Configure Environment Variables**:
-   Create a `.env` file in the project root:
-   ```env
-   EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID=your-google-web-client-id.apps.googleusercontent.com
-   ```
-6. **Build and Prebuild**:
-   Since the Google Sign-in library contains native code, you must prebuild the app to generate native files:
-   ```bash
-   pnpm expo prebuild
-   ```
-    Then compile your development build for Android:
-    ```bash
-    eas build --platform android --profile development
-    ```
+For example, to add Tailwind CSS:
 
-## Building the Production APK Locally
+```sh
+npx sv add tailwindcss
+```
 
-The build is configured to compile only for modern physical devices (`arm64-v8a`) with code minification and resource shrinking enabled to achieve a lightweight package size (reducing it from ~116MB to ~30MB).
+## Developing
 
-To build the APK:
+Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
 
-1. **Prebuild the Android platform**:
-   ```bash
-   pnpm expo prebuild --platform android
-   ```
-2. **Clean up old build cache** (do NOT use `./gradlew clean` due to CMake codegen dependency constraints in React Native New Architecture):
-   ```bash
-   rm -rf android/app/build android/build android/app/.cxx
-   ```
-3. **Compile the Release APK**:
-   ```bash
-   cd android && ./gradlew assembleRelease 2>&1 | tee ../build-logs.txt
-   ```
-   *The final APK will be generated at:* `android/app/build/outputs/apk/release/app-release.apk`
+```sh
+npm run dev
+
+# or start the server and open the app in a new browser tab
+npm run dev -- --open
+```
+
+## Building
+
+To create a production version of your app:
+
+```sh
+npm run build
+```
+
+You can preview the production build with `npm run preview`.
+
+> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
