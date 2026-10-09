@@ -1,15 +1,11 @@
 <script lang="ts">
 	import { appState } from '#lib/state.svelte';
 	import {
-		Coins,
-		FileSpreadsheet,
-		Tag,
 		Download,
 		Upload,
 		Trash2,
 		Plus,
-		Check,
-		Database
+		Check
 	} from '@lucide/svelte';
 
 	let newCategoryName = $state('');
@@ -25,7 +21,7 @@
 	async function handleSaveCurrency(sym: string) {
 		try {
 			await appState.saveSettings({ currencySymbol: sym });
-			appState.showToast('success', 'Currency Updated', `Prefix set to ${sym === '₹' ? 'INR (₹)' : 'USD ($)'}`);
+			appState.showToast('success', 'Currency Updated', `Prefix set to ${sym}`);
 		} catch (err: any) {
 			appState.showToast('error', 'Update Failed', err.message);
 		}
@@ -39,7 +35,7 @@
 		isSavingSpreadsheet = true;
 		try {
 			await appState.saveSettings({ spreadsheetId: spreadsheetId.trim() });
-			appState.showToast('success', 'Settings Saved', 'Spreadsheet ID linked successfully');
+			appState.showToast('success', 'Settings Saved', 'Spreadsheet linked');
 		} catch (err: any) {
 			appState.showToast('error', 'Save Failed', err.message);
 		} finally {
@@ -62,9 +58,9 @@
 		try {
 			await appState.addCategory(trimmed);
 			newCategoryName = '';
-			appState.showToast('success', 'Category Added', `"${trimmed}" is now available`);
+			appState.showToast('success', 'Category Added', `"${trimmed}"`);
 		} catch (err: any) {
-			appState.showToast('error', 'Failed to Add Category', err.message);
+			appState.showToast('error', 'Failed', err.message);
 		}
 	}
 
@@ -72,7 +68,7 @@
 		if (!confirm(`Delete category "${name}"?`)) return;
 		try {
 			await appState.deleteCategory(id);
-			appState.showToast('info', 'Category Removed', name);
+			appState.showToast('info', 'Deleted', name);
 		} catch (err: any) {
 			appState.showToast('error', 'Delete Failed', err.message);
 		}
@@ -106,8 +102,7 @@
 				throw new Error(result.error || 'Restore failed');
 			}
 
-			// Reload page to re-initialize SSR state
-			appState.showToast('success', 'Backup Restored', `Loaded ${result.importedTransactions} transactions`);
+			appState.showToast('success', 'Restored', `Loaded ${result.importedTransactions} transactions`);
 			setTimeout(() => {
 				window.location.reload();
 			}, 1000);
@@ -122,33 +117,30 @@
 
 <div class="space-y-6">
 	<!-- Page Header -->
-	<div>
-		<h1 class="text-2xl font-bold tracking-tight text-zinc-100">Settings</h1>
-		<p class="text-sm text-zinc-400">Configure preferences, currency, categories, and database migrations.</p>
+	<div class="border-b border-stone-800/80 pb-4">
+		<div class="text-[11px] font-medium tracking-wider text-stone-500 uppercase">System</div>
+		<h1 class="text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Configuration & Storage</h1>
 	</div>
 
 	<!-- Currency Configuration Card -->
-	<div class="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-4">
-		<div class="flex items-center gap-2 text-zinc-100 font-bold text-base">
-			<Coins class="w-5 h-5 text-emerald-400" />
-			<span>Currency Configuration</span>
-		</div>
-		<p class="text-xs text-zinc-400">Select your primary currency symbol for display and math.</p>
+	<div class="p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
+		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Primary Currency</div>
+		<p class="text-xs text-stone-500">Select base denomination symbol for ledger math.</p>
 
 		<div class="flex items-center gap-2 max-w-xs">
 			<button
 				onclick={() => handleSaveCurrency('₹')}
-				class="flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all {appState.settings.currencySymbol === '₹'
-					? 'bg-zinc-100 text-zinc-950 border-zinc-100 shadow-sm'
-					: 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200'}"
+				class="flex-1 py-1.5 rounded-lg border text-xs font-mono tabular-nums transition-all {appState.settings.currencySymbol === '₹'
+					? 'bg-[#22211e] text-[#f5f2ea] border-stone-700 shadow-sm'
+					: 'bg-[#111110] text-stone-400 border-stone-800 hover:text-stone-200'}"
 			>
 				INR (₹)
 			</button>
 			<button
 				onclick={() => handleSaveCurrency('$')}
-				class="flex-1 py-2.5 rounded-xl border text-sm font-semibold transition-all {appState.settings.currencySymbol === '$'
-					? 'bg-zinc-100 text-zinc-950 border-zinc-100 shadow-sm'
-					: 'bg-zinc-950 text-zinc-400 border-zinc-800 hover:text-zinc-200'}"
+				class="flex-1 py-1.5 rounded-lg border text-xs font-mono tabular-nums transition-all {appState.settings.currencySymbol === '$'
+					? 'bg-[#22211e] text-[#f5f2ea] border-stone-700 shadow-sm'
+					: 'bg-[#111110] text-stone-400 border-stone-800 hover:text-stone-200'}"
 			>
 				USD ($)
 			</button>
@@ -156,65 +148,55 @@
 	</div>
 
 	<!-- Google Spreadsheet ID Card -->
-	<div class="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-4">
-		<div class="flex items-center gap-2 text-zinc-100 font-bold text-base">
-			<FileSpreadsheet class="w-5 h-5 text-emerald-400" />
-			<span>Google Spreadsheet Link</span>
-		</div>
-		<p class="text-xs text-zinc-400">Target Google Sheet ID containing your transaction ledger.</p>
+	<div class="p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
+		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Google Spreadsheet Integration</div>
+		<p class="text-xs text-stone-500">Linked Google Sheet ID for bidirectional transaction sync.</p>
 
 		<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-2xl">
 			<input
 				type="text"
-				placeholder="e.g. 1LYv2aGTfpGBhfAKAPeEWLfEsJFLZN88FT-e8Zo60Rhw"
+				placeholder="1LYv2aGTfpGBhfAK..."
 				bind:value={spreadsheetId}
-				class="flex-1 px-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 font-mono transition-colors"
+				class="flex-1 px-3 py-1.5 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono focus:outline-none focus:border-stone-600 transition-colors"
 			/>
 			<button
 				onclick={handleSaveSpreadsheet}
 				disabled={isSavingSpreadsheet}
-				class="px-5 py-2.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-sm font-bold transition-colors disabled:opacity-50"
+				class="px-4 py-1.5 rounded-lg bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-medium transition-colors disabled:opacity-50"
 			>
-				{isSavingSpreadsheet ? 'Saving...' : 'Save Link'}
+				{isSavingSpreadsheet ? 'Saving...' : 'Link Sheet'}
 			</button>
 		</div>
 	</div>
 
 	<!-- Category Management Card -->
-	<div class="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-4">
-		<div class="flex items-center gap-2 text-zinc-100 font-bold text-base">
-			<Tag class="w-5 h-5 text-emerald-400" />
-			<span>Manage Categories</span>
-		</div>
-		<p class="text-xs text-zinc-400">Add or remove custom transaction categorization labels.</p>
+	<div class="p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
+		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Ledger Categories</div>
+		<p class="text-xs text-stone-500">Taxonomy for operational debits and credits.</p>
 
-		<!-- Add Category Form -->
-		<form onsubmit={handleAddCategory} class="flex items-center gap-2 max-w-md">
+		<form onsubmit={handleAddCategory} class="flex items-center gap-2 max-w-sm">
 			<input
 				type="text"
-				placeholder="Add category (e.g. Investment)"
+				placeholder="New category..."
 				bind:value={newCategoryName}
-				class="flex-1 px-4 py-2 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm placeholder:text-zinc-600 focus:outline-none focus:border-zinc-500 transition-colors"
+				class="flex-1 px-3 py-1.5 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs focus:outline-none focus:border-stone-600 transition-colors"
 			/>
 			<button
 				type="submit"
-				class="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold transition-colors"
+				class="px-3 py-1.5 rounded-lg bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-medium transition-colors"
 			>
-				<Plus class="w-3.5 h-3.5" />
 				Add
 			</button>
 		</form>
 
-		<!-- Category Pills / List -->
-		<div class="flex flex-wrap gap-2 pt-2">
+		<div class="flex flex-wrap gap-1.5 pt-1">
 			{#each appState.categories as cat (cat.id)}
-				<div class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-950 border border-zinc-800 text-xs font-medium text-zinc-200">
+				<div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-[#111110] border border-stone-800 text-xs text-stone-300">
 					<span>{cat.name}</span>
 					<button
 						onclick={() => handleDeleteCategory(cat.id, cat.name)}
-						class="text-zinc-500 hover:text-rose-400 p-0.5 rounded transition-colors"
-						title="Delete category"
-						aria-label="Delete category"
+						class="text-stone-500 hover:text-rose-400 transition-colors"
+						title="Delete"
 					>
 						<Trash2 class="w-3 h-3" />
 					</button>
@@ -224,27 +206,24 @@
 	</div>
 
 	<!-- Database Backup & Migration Card -->
-	<div class="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-4">
-		<div class="flex items-center gap-2 text-zinc-100 font-bold text-base">
-			<Database class="w-5 h-5 text-emerald-400" />
-			<span>Turso SQLite Backup & Migration</span>
-		</div>
-		<p class="text-xs text-zinc-400">
-			Extract your full database state as JSON or restore an existing backup file.
+	<div class="p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
+		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Database Storage & Exports</div>
+		<p class="text-xs text-stone-500">
+			Encrypted Turso libSQL records can be dumped or restored as JSON.
 		</p>
 
-		<div class="flex flex-wrap items-center gap-3">
+		<div class="flex flex-wrap items-center gap-2.5 pt-1">
 			<button
 				onclick={handleDownloadBackup}
-				class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-bold transition-colors"
+				class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors"
 			>
-				<Download class="w-4 h-4" />
-				<span>Download Full Backup (JSON)</span>
+				<Download class="w-3.5 h-3.5" />
+				<span>Download JSON Backup</span>
 			</button>
 
-			<label class="cursor-pointer flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-zinc-200 text-xs font-semibold transition-colors border border-zinc-700">
-				<Upload class="w-4 h-4" />
-				<span>{isRestoring ? 'Restoring...' : 'Restore from JSON Backup'}</span>
+			<label class="cursor-pointer flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors">
+				<Upload class="w-3.5 h-3.5" />
+				<span>{isRestoring ? 'Restoring...' : 'Restore JSON Backup'}</span>
 				<input
 					type="file"
 					accept=".json"
@@ -253,25 +232,14 @@
 					class="hidden"
 				/>
 			</label>
-		</div>
-	</div>
 
-	<!-- Export to Excel Card -->
-	<div class="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-4">
-		<div class="flex items-center gap-2 text-zinc-100 font-bold text-base">
-			<FileSpreadsheet class="w-5 h-5 text-emerald-400" />
-			<span>Export Ledger & Reconciliation (Excel)</span>
+			<button
+				onclick={handleDownloadExcel}
+				class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors"
+			>
+				<Download class="w-3.5 h-3.5" />
+				<span>Export Excel (.xls)</span>
+			</button>
 		</div>
-		<p class="text-xs text-zinc-400">
-			Download your complete multi-sheet Excel spreadsheet (.xls) with Ledger and Reconciliation formulas.
-		</p>
-
-		<button
-			onclick={handleDownloadExcel}
-			class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-xs font-bold transition-colors"
-		>
-			<Download class="w-4 h-4" />
-			<span>Export to Excel (.xls)</span>
-		</button>
 	</div>
 </div>

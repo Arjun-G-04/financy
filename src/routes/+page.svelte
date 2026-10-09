@@ -22,44 +22,34 @@
 </script>
 
 <svelte:head>
-	<title>Financy • Personal Finance & Ledger</title>
+	<title>Financy • Treasury & Ledger</title>
 	<meta name="description" content="Personal Finance Ledger with Turso SQLite & Google Sheets Sync" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-	<meta name="theme-color" content="#09090b" />
+	<meta name="theme-color" content="#111110" />
 </svelte:head>
 
-<div class="min-h-screen bg-zinc-950 text-zinc-100 flex flex-col font-sans selection:bg-emerald-500/20 selection:text-emerald-300">
+<div class="min-h-screen bg-[#111110] text-[#eeebe3] flex flex-col font-sans selection:bg-[#c9b48b]/30 selection:text-[#f8f5ee]">
 	<Navbar />
 
-	<main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+	<main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
 		{#if appState.activeTab === 'home'}
 			<HomeTab />
-		{:else}
-			{#if appState.activeTab === 'history'}
-				<HistoryTab />
-			{:else}
-				{#if appState.activeTab === 'analytics'}
-					<AnalyticsTab />
-				{:else}
-					{#if appState.activeTab === 'reconcile'}
-						<ReconcileTab />
-					{:else}
-						{#if appState.activeTab === 'import'}
-							<ImportTab />
-						{:else}
-							{#if appState.activeTab === 'settings'}
-								<SettingsTab />
-							{/if}
-						{/if}
-					{/if}
-				{/if}
-			{/if}
+		{:else if appState.activeTab === 'history'}
+			<HistoryTab />
+		{:else if appState.activeTab === 'analytics'}
+			<AnalyticsTab />
+		{:else if appState.activeTab === 'reconcile'}
+			<ReconcileTab />
+		{:else if appState.activeTab === 'import'}
+			<ImportTab />
+		{:else if appState.activeTab === 'settings'}
+			<SettingsTab />
 		{/if}
 	</main>
 
 	<!-- Footer -->
-	<footer class="border-t border-zinc-900 py-6 text-center text-xs text-zinc-600">
-		<p>Financy • Turso SQLite Backend • SvelteKit & Svelte 5</p>
+	<footer class="border-t border-stone-850/80 py-6 text-center text-xs text-stone-500">
+		<p>Financy • Turso libSQL • SvelteKit</p>
 	</footer>
 
 	<!-- Global Overlays -->

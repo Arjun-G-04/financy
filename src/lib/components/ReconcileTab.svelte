@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { appState } from '#lib/state.svelte';
-	import { Scale, Check, RefreshCw, AlertTriangle, Clock } from '@lucide/svelte';
+	import { Check } from '@lucide/svelte';
 
 	let ccDebt = $state('0');
 	let hdfc = $state('0');
@@ -59,9 +59,9 @@
 			});
 
 			lastUpdated = timestamp;
-			appState.showToast('success', 'Reconciliation Saved', `Updated at ${timestamp}`);
+			appState.showToast('success', 'Reconciled', `Updated ${timestamp}`);
 		} catch (err: any) {
-			appState.showToast('error', 'Save Failed', err.message);
+			appState.showToast('error', 'Error', err.message);
 		} finally {
 			isSaving = false;
 		}
@@ -70,77 +70,60 @@
 
 <div class="space-y-6">
 	<!-- Page Header -->
-	<div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+	<div class="flex items-baseline justify-between border-b border-stone-800/80 pb-4">
 		<div>
-			<h1 class="text-2xl font-bold tracking-tight text-zinc-100">Asset & Bank Reconciliation</h1>
-			<p class="text-sm text-zinc-400">Match theoretical ledger balance against actual cash & bank holdings.</p>
+			<div class="text-[11px] font-medium tracking-wider text-stone-500 uppercase">Audit & Balance</div>
+			<h1 class="text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Asset Holdings Reconciliation</h1>
 		</div>
 
 		{#if lastUpdated}
-			<div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-xs text-zinc-400">
-				<Clock class="w-3.5 h-3.5 text-zinc-500" />
-				<span>Last reconciled: <strong class="text-zinc-200">{lastUpdated}</strong></span>
+			<div class="text-xs text-stone-500 font-mono">
+				Audit date: <span class="text-stone-300">{lastUpdated}</span>
 			</div>
 		{/if}
 	</div>
 
-	<!-- Reconciliation Math Highlight Grid -->
+	<!-- Minimal Accounting Delta Strip -->
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-		<!-- Theoretical Money -->
-		<div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-1">
-			<span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-				Theoretical Money
-			</span>
-			<div class="text-2xl font-bold text-zinc-100">
+		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
+			<div class="text-[10px] text-stone-500 uppercase tracking-wider">Theoretical Money</div>
+			<div class="text-xl font-mono tabular-nums font-semibold text-[#f5f2ea]">
 				{formatCurrency(theoreticalMoney)}
 			</div>
-			<div class="text-xs text-zinc-500">
-				Ledger Net ({formatCurrency(appState.netBalance)}) + CC Debt ({formatCurrency(numCcDebt)})
-			</div>
+			<div class="text-[11px] text-stone-500">Ledger Net + CC Debt</div>
 		</div>
 
-		<!-- Actual Money -->
-		<div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-1">
-			<span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-				Actual Money
-			</span>
-			<div class="text-2xl font-bold text-zinc-100">
+		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
+			<div class="text-[10px] text-stone-500 uppercase tracking-wider">Actual Money</div>
+			<div class="text-xl font-mono tabular-nums font-semibold text-[#f5f2ea]">
 				{formatCurrency(actualMoney)}
 			</div>
-			<div class="text-xs text-zinc-500">
-				HDFC + KVB + Cash + Credits Owed
-			</div>
+			<div class="text-[11px] text-stone-500">Bank + Cash + Receivables</div>
 		</div>
 
-		<!-- Net Difference -->
-		<div class="p-5 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-1">
-			<span class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">
-				Net Difference
-			</span>
-			<div class="text-2xl font-bold {Math.abs(netDifference) < 1 ? 'text-emerald-400' : 'text-rose-400'}">
+		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
+			<div class="text-[10px] text-stone-500 uppercase tracking-wider">Net Discrepancy</div>
+			<div class="text-xl font-mono tabular-nums font-semibold {Math.abs(netDifference) < 1 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
 				{formatCurrency(netDifference)}
 			</div>
-			<div class="text-xs text-zinc-500">
-				{Math.abs(netDifference) < 1 ? 'Perfect match!' : 'Theoretical vs Actual mismatch'}
+			<div class="text-[11px] text-stone-500">
+				{Math.abs(netDifference) < 1 ? 'Balanced to zero' : 'Pending reconciliation'}
 			</div>
 		</div>
 	</div>
 
-	<!-- Input Forms Card -->
-	<div class="p-6 rounded-2xl bg-zinc-900 border border-zinc-800 shadow-sm space-y-6">
-		<div>
-			<h2 class="text-lg font-bold text-zinc-100">Accounts & Balances</h2>
-			<p class="text-xs text-zinc-400">Enter current real balances across your accounts and cash</p>
-		</div>
+	<!-- Input Form Card -->
+	<div class="p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-4">
+		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Recorded Account Balances</div>
 
-		<div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
 			<!-- Credit Card Debt -->
 			<div>
-				<label for="ccDebt" class="block text-xs font-medium text-zinc-400 mb-1.5">
-					Credit Card Unpaid Bill (CC Debt)
+				<label for="ccDebt" class="block text-xs text-stone-400 mb-1">
+					Credit Card Debt (Unbilled / Unpaid)
 				</label>
 				<div class="relative">
-					<span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-semibold">
+					<span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-mono">
 						{appState.settings.currencySymbol || '₹'}
 					</span>
 					<input
@@ -148,18 +131,18 @@
 						type="number"
 						step="any"
 						bind:value={ccDebt}
-						class="w-full pl-9 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-zinc-500 transition-colors"
+						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
 
 			<!-- HDFC Bank -->
 			<div>
-				<label for="hdfc" class="block text-xs font-medium text-zinc-400 mb-1.5">
+				<label for="hdfc" class="block text-xs text-stone-400 mb-1">
 					HDFC Bank Balance
 				</label>
 				<div class="relative">
-					<span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-semibold">
+					<span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-mono">
 						{appState.settings.currencySymbol || '₹'}
 					</span>
 					<input
@@ -167,18 +150,18 @@
 						type="number"
 						step="any"
 						bind:value={hdfc}
-						class="w-full pl-9 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-zinc-500 transition-colors"
+						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
 
 			<!-- KVB Bank -->
 			<div>
-				<label for="kvb" class="block text-xs font-medium text-zinc-400 mb-1.5">
+				<label for="kvb" class="block text-xs text-stone-400 mb-1">
 					KVB Bank Balance
 				</label>
 				<div class="relative">
-					<span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-semibold">
+					<span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-mono">
 						{appState.settings.currencySymbol || '₹'}
 					</span>
 					<input
@@ -186,18 +169,18 @@
 						type="number"
 						step="any"
 						bind:value={kvb}
-						class="w-full pl-9 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-zinc-500 transition-colors"
+						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
 
-			<!-- Cash Balance -->
+			<!-- Cash -->
 			<div>
-				<label for="cash" class="block text-xs font-medium text-zinc-400 mb-1.5">
+				<label for="cash" class="block text-xs text-stone-400 mb-1">
 					Physical Cash in Hand
 				</label>
 				<div class="relative">
-					<span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-semibold">
+					<span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-mono">
 						{appState.settings.currencySymbol || '₹'}
 					</span>
 					<input
@@ -205,18 +188,18 @@
 						type="number"
 						step="any"
 						bind:value={cash}
-						class="w-full pl-9 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-zinc-500 transition-colors"
+						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
 
-			<!-- Credits Owed By Others -->
+			<!-- Credits Receivable -->
 			<div class="sm:col-span-2">
-				<label for="creditsOwed" class="block text-xs font-medium text-zinc-400 mb-1.5">
-					Credits Owed to Me (Lent to others)
+				<label for="creditsOwed" class="block text-xs text-stone-400 mb-1">
+					Credits Receivable (Lent to third parties)
 				</label>
 				<div class="relative">
-					<span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-zinc-500 text-sm font-semibold">
+					<span class="absolute left-3 top-1/2 -translate-y-1/2 text-stone-500 text-xs font-mono">
 						{appState.settings.currencySymbol || '₹'}
 					</span>
 					<input
@@ -224,21 +207,21 @@
 						type="number"
 						step="any"
 						bind:value={creditsOwed}
-						class="w-full pl-9 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-zinc-500 transition-colors"
+						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
 		</div>
 
-		<!-- Save Button -->
-		<div class="flex justify-end pt-2 border-t border-zinc-800">
+		<!-- Submit Button -->
+		<div class="flex justify-end pt-2 border-t border-stone-800/60">
 			<button
 				onclick={handleSaveReconciliation}
 				disabled={isSaving}
-				class="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-zinc-100 hover:bg-white text-zinc-950 text-sm font-bold transition-colors disabled:opacity-50"
+				class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-medium transition-colors disabled:opacity-50"
 			>
-				<Check class="w-4 h-4 stroke-[2.5]" />
-				<span>{isSaving ? 'Saving...' : 'Save & Reconcile'}</span>
+				<Check class="w-3.5 h-3.5 stroke-[2.2]" />
+				<span>{isSaving ? 'Saving...' : 'Update Holdings'}</span>
 			</button>
 		</div>
 	</div>
