@@ -346,6 +346,70 @@ export function SettingsTab({
     }
   };
 
+  const handleExportBackup = async () => {
+    try {
+      const transactions = DatabaseService.getTransactions();
+      const categories = DatabaseService.getCategories();
+
+      const [ccDebt, hdfc, kvb, cash, credits, lastUpdated] = await Promise.all([
+        SecureStore.getItemAsync('reconcile_cc_debt').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_hdfc_balance').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_kvb_balance').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_cash_balance').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_credits_owed').then(val => val || '0'),
+        SecureStore.getItemAsync('reconcile_last_updated').then(val => val || ''),
+      ]);
+
+      const backupData = {
+        version: 1,
+        exportedAt: new Date().toISOString(),
+        settings: {
+          spreadsheetId: spreadsheetId || '',
+          currencySymbol: currencySymbol || '₹',
+          reconciliation: {
+            ccDebt,
+            hdfc,
+            kvb,
+            cash,
+            creditsOwed: credits,
+            lastUpdated,
+          },
+        },
+        categories,
+        transactions,
+      };
+
+      const jsonString = JSON.stringify(backupData, null, 2);
+      const filename = `financy_backup_${Date.now()}.json`;
+      const fileUri = `${FileSystem.documentDirectory}${filename}`;
+
+      await FileSystem.writeAsStringAsync(fileUri, jsonString, {
+        encoding: FileSystem.EncodingType.UTF8,
+      });
+
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(fileUri, {
+          mimeType: 'application/json',
+          dialogTitle: 'Export Full Database Backup (JSON)',
+          UTI: 'public.json',
+        });
+      } else {
+        Toast.show({
+          type: 'error',
+          text1: 'Export Failed',
+          text2: 'Sharing is not available on this device',
+        });
+      }
+    } catch (e) {
+      console.error('Failed to export backup:', e);
+      Toast.show({
+        type: 'error',
+        text1: 'Backup Failed',
+        text2: 'Error occurred while generating backup file',
+      });
+    }
+  };
+
   return (
     <View style={styles.viewSection}>
       <Text style={[styles.pageHeading, { color: colors.text }]}>Settings</Text>
@@ -511,6 +575,28 @@ export function SettingsTab({
           activeOpacity={0.8}
         >
           <Text style={[styles.primaryButtonText, { color: colors.background }]}>Export to Excel</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Database Backup Setting */}
+      <View style={[styles.settingsCard, { backgroundColor: colors.backgroundElement }]}>
+        <View style={styles.settingsHeader}>
+          <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+            <Path d="M12 2C6.48 2 2 4.02 2 6.5v11C2 19.98 6.48 22 12 22s10-2.02 10-4.5v-11C22 4.02 17.52 2 12 2z" stroke={colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <Path d="M2 12c0 2.48 4.48 4.5 10 4.5s10-2.02 10-4.5" stroke={colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <Path d="M2 7.25c0 2.48 4.48 4.5 10 4.5s10-2.02 10-4.5" stroke={colors.text} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </Svg>
+          <Text style={[styles.settingsTitle, { color: colors.text }]}>Database Migration Backup</Text>
+        </View>
+        <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
+          Extract full database state (all transactions, categories, reconciliation balances, and settings) into a JSON backup file.
+        </Text>
+        <TouchableOpacity
+          style={[styles.primaryButton, { backgroundColor: colors.emerald }]}
+          onPress={handleExportBackup}
+          activeOpacity={0.8}
+        >
+          <Text style={[styles.primaryButtonText, { color: '#09090B', fontWeight: 'bold' }]}>Export Full Backup (JSON)</Text>
         </TouchableOpacity>
       </View>
 
