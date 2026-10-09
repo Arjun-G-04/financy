@@ -61,6 +61,13 @@
 
 			<!-- Net Balance Badge & Add Button -->
 			<div class="flex items-center gap-2.5">
+				<a
+					href="/test"
+					class="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-xs text-zinc-300 font-medium transition-colors"
+				>
+					<span>Design Lab</span>
+				</a>
+
 				<div class="hidden sm:flex flex-col text-right">
 					<span class="text-[10px] uppercase tracking-wider text-zinc-500 font-medium">Net Ledger</span>
 					<span class="text-sm font-semibold {appState.netBalance >= 0 ? 'text-emerald-400' : 'text-rose-400'}">
