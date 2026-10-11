@@ -31,7 +31,7 @@
 <div class="min-h-screen bg-[#111110] text-[#eeebe3] flex flex-col font-sans selection:bg-[#c9b48b]/30 selection:text-[#f8f5ee]">
 	<Navbar />
 
-	<main class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+	<main class="flex-1 max-w-6xl w-full mx-auto px-3.5 sm:px-6 py-4 sm:py-8 pb-24 md:pb-8">
 		{#if appState.activeTab === 'home'}
 			<HomeTab />
 		{:else if appState.activeTab === 'history'}

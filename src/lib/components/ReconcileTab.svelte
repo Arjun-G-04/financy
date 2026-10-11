@@ -68,52 +68,52 @@
 	}
 </script>
 
-<div class="space-y-6">
+<div class="space-y-5 sm:space-y-6">
 	<!-- Page Header -->
-	<div class="flex items-baseline justify-between border-b border-stone-800/80 pb-4">
+	<div class="flex flex-col sm:flex-row sm:items-baseline justify-between border-b border-stone-800/80 pb-4 gap-1.5">
 		<div>
-			<div class="text-[11px] font-medium tracking-wider text-stone-500 uppercase">Audit & Balance</div>
-			<h1 class="text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Asset Holdings Reconciliation</h1>
+			<div class="text-[10px] sm:text-[11px] font-medium tracking-wider text-stone-500 uppercase">Audit & Balance</div>
+			<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Asset Holdings Reconciliation</h1>
 		</div>
 
 		{#if lastUpdated}
-			<div class="text-xs text-stone-500 font-mono">
+			<div class="text-[11px] sm:text-xs text-stone-500 font-mono">
 				Audit date: <span class="text-stone-300">{lastUpdated}</span>
 			</div>
 		{/if}
 	</div>
 
 	<!-- Minimal Accounting Delta Strip -->
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
+	<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+		<div class="p-3.5 sm:p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[10px] text-stone-500 uppercase tracking-wider">Theoretical Money</div>
-			<div class="text-xl font-mono tabular-nums font-semibold text-[#f5f2ea]">
+			<div class="text-lg sm:text-xl font-mono tabular-nums font-semibold text-[#f5f2ea] truncate">
 				{formatCurrency(theoreticalMoney)}
 			</div>
-			<div class="text-[11px] text-stone-500">Ledger Net + CC Debt</div>
+			<div class="text-[10px] sm:text-[11px] text-stone-500">Ledger Net + CC Debt</div>
 		</div>
 
-		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
+		<div class="p-3.5 sm:p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[10px] text-stone-500 uppercase tracking-wider">Actual Money</div>
-			<div class="text-xl font-mono tabular-nums font-semibold text-[#f5f2ea]">
+			<div class="text-lg sm:text-xl font-mono tabular-nums font-semibold text-[#f5f2ea] truncate">
 				{formatCurrency(actualMoney)}
 			</div>
-			<div class="text-[11px] text-stone-500">Bank + Cash + Receivables</div>
+			<div class="text-[10px] sm:text-[11px] text-stone-500">Bank + Cash + Receivables</div>
 		</div>
 
-		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
+		<div class="p-3.5 sm:p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[10px] text-stone-500 uppercase tracking-wider">Net Discrepancy</div>
-			<div class="text-xl font-mono tabular-nums font-semibold {Math.abs(netDifference) < 1 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+			<div class="text-lg sm:text-xl font-mono tabular-nums font-semibold truncate {Math.abs(netDifference) < 1 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
 				{formatCurrency(netDifference)}
 			</div>
-			<div class="text-[11px] text-stone-500">
+			<div class="text-[10px] sm:text-[11px] text-stone-500">
 				{Math.abs(netDifference) < 1 ? 'Balanced to zero' : 'Pending reconciliation'}
 			</div>
 		</div>
 	</div>
 
 	<!-- Input Form Card -->
-	<div class="p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-4">
+	<div class="p-4 sm:p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-4">
 		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Recorded Account Balances</div>
 
 		<div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
@@ -131,7 +131,7 @@
 						type="number"
 						step="any"
 						bind:value={ccDebt}
-						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
+						class="w-full pl-7 pr-3 py-2.5 sm:py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-base sm:text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
@@ -150,7 +150,7 @@
 						type="number"
 						step="any"
 						bind:value={hdfc}
-						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
+						class="w-full pl-7 pr-3 py-2.5 sm:py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-base sm:text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
@@ -169,7 +169,7 @@
 						type="number"
 						step="any"
 						bind:value={kvb}
-						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
+						class="w-full pl-7 pr-3 py-2.5 sm:py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-base sm:text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
@@ -188,7 +188,7 @@
 						type="number"
 						step="any"
 						bind:value={cash}
-						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
+						class="w-full pl-7 pr-3 py-2.5 sm:py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-base sm:text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
@@ -207,7 +207,7 @@
 						type="number"
 						step="any"
 						bind:value={creditsOwed}
-						class="w-full pl-7 pr-3 py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
+						class="w-full pl-7 pr-3 py-2.5 sm:py-2 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-base sm:text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 			</div>
@@ -218,7 +218,7 @@
 			<button
 				onclick={handleSaveReconciliation}
 				disabled={isSaving}
-				class="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-medium transition-colors disabled:opacity-50"
+				class="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 rounded-lg bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all disabled:opacity-50 min-h-[44px] sm:min-h-0 shadow-sm"
 			>
 				<Check class="w-3.5 h-3.5 stroke-[2.2]" />
 				<span>{isSaving ? 'Saving...' : 'Update Holdings'}</span>

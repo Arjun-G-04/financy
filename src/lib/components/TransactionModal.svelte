@@ -104,11 +104,14 @@
 
 {#if appState.isTransactionModalOpen}
 	<div
-		class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
+		class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
 	>
 		<div
-			class="relative w-full max-w-md bg-[#171715] border border-stone-800 rounded-2xl shadow-2xl p-5 space-y-4 max-h-[90vh] overflow-y-auto"
+			class="relative w-full max-w-md bg-[#171715] border-t sm:border border-stone-800 rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-5 space-y-4 max-h-[90vh] sm:max-h-[90vh] overflow-y-auto"
 		>
+			<!-- Mobile Drag Handle -->
+			<div class="w-10 h-1 rounded-full bg-stone-700/80 mx-auto sm:hidden -mt-1 mb-2"></div>
+
 			<!-- Header -->
 			<div class="flex items-center justify-between pb-3 border-b border-stone-800">
 				<div>
@@ -128,7 +131,7 @@
 				<button
 					type="button"
 					onclick={() => appState.closeTransactionModal()}
-					class="text-stone-500 hover:text-stone-300 p-1.5 rounded-lg hover:bg-[#232320] transition-colors"
+					class="text-stone-500 hover:text-stone-300 p-2 sm:p-1.5 rounded-lg hover:bg-[#232320] transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
 					aria-label="Close"
 				>
 					<X class="w-4 h-4" />
@@ -170,11 +173,11 @@
 				<!-- Direction Switcher -->
 				<div>
 					<span class="block text-[11px] text-stone-400 mb-1 font-mono uppercase tracking-wider">Direction</span>
-					<div class="grid grid-cols-2 gap-1.5 p-0.5 bg-[#111110] rounded-xl border border-stone-800">
+					<div class="grid grid-cols-2 gap-1.5 p-1 bg-[#111110] rounded-xl border border-stone-800">
 						<button
 							type="button"
 							onclick={() => (type = 'debit')}
-							class="py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 {type === 'debit'
+							class="py-2.5 sm:py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 min-h-[40px] sm:min-h-0 {type === 'debit'
 								? 'bg-[#22211e] text-[#e06c75] shadow-sm font-semibold'
 								: 'text-stone-400 hover:text-stone-200'}"
 						>
@@ -184,7 +187,7 @@
 						<button
 							type="button"
 							onclick={() => (type = 'credit')}
-							class="py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 {type === 'credit'
+							class="py-2.5 sm:py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 min-h-[40px] sm:min-h-0 {type === 'credit'
 								? 'bg-[#22211e] text-[#82b896] shadow-sm font-semibold'
 								: 'text-stone-400 hover:text-stone-200'}"
 						>
@@ -206,7 +209,7 @@
 						value={name}
 						oninput={(e) => handleNameChange((e.target as HTMLInputElement).value)}
 						required
-						class="w-full px-3 py-2 bg-[#111110] border border-stone-800 rounded-xl text-stone-200 text-xs focus:outline-none focus:border-stone-600 transition-colors"
+						class="w-full px-3 py-2.5 sm:py-2 bg-[#111110] border border-stone-800 rounded-xl text-stone-200 text-base sm:text-xs focus:outline-none focus:border-stone-600 transition-colors"
 					/>
 				</div>
 
@@ -224,7 +227,7 @@
 							placeholder="0.00"
 							bind:value={amount}
 							required
-							class="w-full px-3 py-2 bg-[#111110] border border-stone-800 rounded-xl text-stone-100 text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
+							class="w-full px-3 py-2.5 sm:py-2 bg-[#111110] border border-stone-800 rounded-xl text-stone-100 text-base sm:text-xs font-mono tabular-nums focus:outline-none focus:border-stone-600 transition-colors"
 						/>
 					</div>
 				</div>
@@ -244,7 +247,7 @@
 						id="modal-category"
 						bind:value={category}
 						required
-						class="w-full px-3 py-2 bg-[#111110] border rounded-xl text-xs focus:outline-none transition-colors {!category
+						class="w-full px-3 py-2.5 sm:py-2 bg-[#111110] border rounded-xl text-base sm:text-xs focus:outline-none transition-colors {!category
 							? 'border-[#e06c75]/50 text-stone-500'
 							: 'border-stone-800 text-stone-200 focus:border-stone-600'}"
 					>
@@ -269,7 +272,7 @@
 					<button
 						type="button"
 						onclick={() => appState.closeTransactionModal()}
-						class="flex-1 py-2 rounded-xl border border-stone-800 text-stone-400 hover:text-stone-200 hover:bg-[#1a1917] text-xs font-medium transition-colors"
+						class="flex-1 py-3 sm:py-2 rounded-xl border border-stone-800 text-stone-400 hover:text-stone-200 hover:bg-[#1a1917] text-xs font-medium transition-colors min-h-[44px] sm:min-h-0 flex items-center justify-center"
 					>
 						Cancel
 					</button>
@@ -277,7 +280,7 @@
 					<button
 						type="submit"
 						disabled={isSubmitting}
-						class="flex-1 py-2 rounded-xl bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm"
+						class="flex-1 py-3 sm:py-2 rounded-xl bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm min-h-[44px] sm:min-h-0"
 					>
 						{#if isReviewMode}
 							<Check class="w-3.5 h-3.5" />

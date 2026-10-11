@@ -234,83 +234,87 @@
 	<!-- Calendar Popover -->
 	{#if isOpen}
 		<div
-			class="absolute z-50 mt-1.5 w-72 bg-[#171715] border border-stone-800 rounded-2xl shadow-2xl p-3.5 space-y-3 animate-in fade-in zoom-in-95 duration-100"
+			class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs sm:backdrop-blur-none sm:bg-transparent sm:p-0 sm:absolute sm:inset-auto sm:mt-1.5 sm:left-0 sm:w-auto"
 		>
-			<!-- Month & Year Navigation Header -->
-			<div class="flex items-center justify-between">
-				<button
-					type="button"
-					onclick={prevMonth}
-					class="p-1 rounded-lg hover:bg-[#232320] text-stone-400 hover:text-stone-200 transition-colors"
-					aria-label="Previous Month"
-				>
-					<ChevronLeft class="w-4 h-4" />
-				</button>
+			<div
+				class="w-72 max-w-[calc(100vw-2rem)] bg-[#171715] border border-stone-800 rounded-2xl shadow-2xl p-3.5 space-y-3 animate-in fade-in zoom-in-95 duration-100"
+			>
+				<!-- Month & Year Navigation Header -->
+				<div class="flex items-center justify-between">
+					<button
+						type="button"
+						onclick={prevMonth}
+						class="p-2 sm:p-1 rounded-lg hover:bg-[#232320] text-stone-400 hover:text-stone-200 transition-colors min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
+						aria-label="Previous Month"
+					>
+						<ChevronLeft class="w-4 h-4" />
+					</button>
 
-				<div class="text-xs font-semibold text-[#f5f2ea] font-mono tracking-tight">
-					{monthNames[viewMonth]} {viewYear}
+					<div class="text-xs font-semibold text-[#f5f2ea] font-mono tracking-tight">
+						{monthNames[viewMonth]} {viewYear}
+					</div>
+
+					<button
+						type="button"
+						onclick={nextMonth}
+						class="p-2 sm:p-1 rounded-lg hover:bg-[#232320] text-stone-400 hover:text-stone-200 transition-colors min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
+						aria-label="Next Month"
+					>
+						<ChevronRight class="w-4 h-4" />
+					</button>
 				</div>
 
-				<button
-					type="button"
-					onclick={nextMonth}
-					class="p-1 rounded-lg hover:bg-[#232320] text-stone-400 hover:text-stone-200 transition-colors"
-					aria-label="Next Month"
-				>
-					<ChevronRight class="w-4 h-4" />
-				</button>
-			</div>
+				<!-- Day Headers (Su, Mo, Tu...) -->
+				<div class="grid grid-cols-7 gap-1 text-center">
+					{#each dayHeaders as d}
+						<div class="text-[10px] font-mono text-stone-500 font-semibold py-1">
+							{d}
+						</div>
+					{/each}
+				</div>
 
-			<!-- Day Headers (Su, Mo, Tu...) -->
-			<div class="grid grid-cols-7 gap-1 text-center">
-				{#each dayHeaders as d}
-					<div class="text-[10px] font-mono text-stone-500 font-semibold py-1">
-						{d}
-					</div>
-				{/each}
-			</div>
+				<!-- Calendar Grid -->
+				<div class="grid grid-cols-7 gap-1">
+					{#each calendarCells as cell}
+						<button
+							type="button"
+							onclick={() => selectDate(cell.dateStr)}
+							class="h-8 sm:h-7 w-full flex items-center justify-center rounded-lg text-xs font-mono tabular-nums transition-colors
+								{cell.isSelected
+								? 'bg-[#eeebe3] text-[#111110] font-bold shadow-sm'
+								: cell.isCurrentMonth
+									? 'text-stone-300 hover:bg-[#232320]'
+									: 'text-stone-600 hover:bg-[#1a1917]'}
+								{cell.isToday && !cell.isSelected ? 'border border-[#82b896]/50 text-[#82b896]' : ''}"
+						>
+							{cell.day}
+						</button>
+					{/each}
+				</div>
 
-			<!-- Calendar Grid -->
-			<div class="grid grid-cols-7 gap-1">
-				{#each calendarCells as cell}
+				<!-- Footer Shortcuts -->
+				<div class="pt-2 border-t border-stone-800/80 flex items-center justify-between text-[11px] font-mono">
 					<button
 						type="button"
-						onclick={() => selectDate(cell.dateStr)}
-						class="h-7 w-full flex items-center justify-center rounded-lg text-xs font-mono tabular-nums transition-colors
-							{cell.isSelected
-							? 'bg-[#eeebe3] text-[#111110] font-bold shadow-sm'
-							: cell.isCurrentMonth
-								? 'text-stone-300 hover:bg-[#232320]'
-								: 'text-stone-600 hover:bg-[#1a1917]'}
-							{cell.isToday && !cell.isSelected ? 'border border-[#82b896]/50 text-[#82b896]' : ''}"
+						onclick={selectToday}
+						class="text-[#82b896] hover:text-[#a1d6b4] transition-colors py-1 px-2.5 rounded hover:bg-[#82b896]/10 min-h-[44px] sm:min-h-0 flex items-center"
 					>
-						{cell.day}
+						Today
 					</button>
-				{/each}
-			</div>
 
-			<!-- Footer Shortcuts -->
-			<div class="pt-2 border-t border-stone-800/80 flex items-center justify-between text-[11px] font-mono">
-				<button
-					type="button"
-					onclick={selectToday}
-					class="text-[#82b896] hover:text-[#a1d6b4] transition-colors py-0.5 px-1.5 rounded hover:bg-[#82b896]/10"
-				>
-					Today
-				</button>
-
-				{#if clearable}
-					<button
-						type="button"
-						onclick={() => {
-							value = '';
-							isOpen = false;
-						}}
-						class="text-stone-500 hover:text-stone-300 transition-colors py-0.5 px-1.5 rounded hover:bg-stone-800/50"
-					>
-						Clear
-					</button>
-				{/if}
+					{#if clearable}
+						<button
+							type="button"
+							onclick={() => {
+								value = '';
+								isOpen = false;
+							}}
+							class="text-stone-500 hover:text-stone-300 transition-colors py-1 px-2.5 rounded hover:bg-stone-800/50 min-h-[44px] sm:min-h-0 flex items-center"
+						>
+							Clear
+						</button>
+					{/if}
+				</div>
 			</div>
 		</div>
 	{/if}

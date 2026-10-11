@@ -9,7 +9,7 @@
 	<title>Sign In • Financy Treasury</title>
 </svelte:head>
 
-<div class="min-h-screen bg-[#111110] text-[#eeebe3] flex flex-col justify-center items-center px-4 py-12 selection:bg-[#c9b48b]/30">
+<div class="min-h-[100dvh] bg-[#111110] text-[#eeebe3] flex flex-col justify-center items-center px-4 py-8 sm:py-12 pb-[calc(2rem+env(safe-area-inset-bottom,0px))] selection:bg-[#c9b48b]/30">
 	<div class="w-full max-w-sm space-y-8">
 		<!-- Masthead -->
 		<div class="text-center space-y-2">

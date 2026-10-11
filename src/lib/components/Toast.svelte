@@ -4,7 +4,7 @@
 </script>
 
 {#if appState.toasts.length > 0}
-	<div class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0">
+	<div class="fixed bottom-[calc(env(safe-area-inset-bottom,0px)+4.25rem)] sm:bottom-5 right-0 sm:right-5 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-3 sm:px-0">
 		{#each appState.toasts as toast (toast.id)}
 			<div
 				class="pointer-events-auto flex items-start gap-3 p-3.5 rounded-xl shadow-2xl border backdrop-blur-md transition-all duration-200 {toast.type === 'success'

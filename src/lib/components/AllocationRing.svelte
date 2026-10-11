@@ -47,7 +47,7 @@
 			No debit entries to display for this selection.
 		</div>
 	{:else}
-		<div class="flex flex-col md:flex-row items-center justify-around gap-6 py-2">
+		<div class="flex items-center justify-center py-2">
 			<!-- SVG Donut Ring -->
 			<div class="relative w-56 h-56 flex items-center justify-center shrink-0">
 				<svg
@@ -72,6 +72,13 @@
 							role="button"
 							tabindex="0"
 							aria-label="{seg.name}: {seg.percentage.toFixed(1)}%"
+							onclick={() => (hoveredCategory = hoveredCategory === seg.name ? null : seg.name)}
+							onkeydown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									hoveredCategory = hoveredCategory === seg.name ? null : seg.name;
+								}
+							}}
 							onmouseenter={() => (hoveredCategory = seg.name)}
 							onmouseleave={() => (hoveredCategory = null)}
 							onfocus={() => (hoveredCategory = seg.name)}
@@ -120,34 +127,6 @@
 						</div>
 					{/if}
 				</div>
-			</div>
-
-			<!-- Interactive Legend Badges -->
-			<div class="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-2.5 w-full">
-				{#each categories as cat}
-					<div
-						role="button"
-						tabindex="0"
-						onmouseenter={() => (hoveredCategory = cat.name)}
-						onmouseleave={() => (hoveredCategory = null)}
-						class="flex items-center justify-between p-2 rounded-lg bg-[#111110] border border-stone-800/80 transition-all text-xs
-							{hoveredCategory === cat.name ? 'border-stone-600 bg-[#1e1d1a]' : 'hover:border-stone-700'}"
-					>
-						<div class="flex items-center gap-2 min-w-0">
-							<span
-								class="w-2.5 h-2.5 rounded-full shrink-0"
-								style="background-color: {cat.color};"
-							></span>
-							<span class="font-medium text-stone-300 truncate">{cat.name}</span>
-						</div>
-						<div class="flex items-center gap-2 shrink-0 font-mono tabular-nums">
-							<span class="text-stone-500 text-[11px]">{cat.percentage.toFixed(1)}%</span>
-							<span class="font-semibold text-stone-200">
-								{formatCurrency(cat.amount, appState.settings.currencySymbol)}
-							</span>
-						</div>
-					</div>
-				{/each}
 			</div>
 		</div>
 	{/if}

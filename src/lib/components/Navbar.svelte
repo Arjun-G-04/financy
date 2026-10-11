@@ -26,16 +26,16 @@
 	}
 </script>
 
-<header class="sticky top-0 z-40 w-full border-b border-stone-800/80 bg-[#111110]/90 backdrop-blur-md">
-	<div class="max-w-6xl mx-auto px-4 sm:px-6">
-		<div class="flex items-center justify-between h-16">
+<header class="sticky top-0 z-40 w-full border-b border-stone-800/80 bg-[#111110]/95 backdrop-blur-md">
+	<div class="max-w-6xl mx-auto px-3 sm:px-6">
+		<div class="flex items-center justify-between h-14 sm:h-16">
 			<!-- Minimalist Brand -->
-			<div class="flex items-center gap-3">
-				<a href="/" class="flex items-baseline gap-2 group">
-					<span class="text-base font-serif tracking-tight text-[#f5f2ea] group-hover:text-white transition-colors">
+			<div class="flex items-center gap-2 sm:gap-3">
+				<a href="/" class="flex items-baseline gap-1.5 sm:gap-2 group py-1">
+					<span class="text-base sm:text-lg font-serif tracking-tight text-[#f5f2ea] group-hover:text-white transition-colors">
 						Financy
 					</span>
-					<span class="text-[11px] text-stone-500 font-mono tracking-wider uppercase">
+					<span class="hidden xs:inline text-[10px] sm:text-[11px] text-stone-500 font-mono tracking-wider uppercase">
 						// Treasury
 					</span>
 				</a>
@@ -55,11 +55,12 @@
 				{/each}
 			</nav>
 
-			<!-- Right: Net Position & New Action -->
-			<div class="flex items-center gap-3">
-				<div class="hidden sm:flex flex-col text-right">
-					<span class="text-[10px] uppercase tracking-wider text-stone-500 font-medium">Net Position</span>
-					<span class="text-xs font-mono tabular-nums font-semibold {appState.netBalance >= 0 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+			<!-- Right: Net Position & Actions -->
+			<div class="flex items-center gap-2 sm:gap-3">
+				<!-- Net Position (Always visible, compact on mobile) -->
+				<div class="flex flex-col text-right">
+					<span class="hidden sm:inline text-[10px] uppercase tracking-wider text-stone-500 font-medium">Net Position</span>
+					<span class="text-[11px] sm:text-xs font-mono tabular-nums font-semibold px-2 py-0.5 rounded-md bg-[#171715] sm:bg-transparent border border-stone-800/80 sm:border-0 {appState.netBalance >= 0 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
 						{formatCurrency(appState.netBalance)}
 					</span>
 				</div>
@@ -69,15 +70,16 @@
 						appState.editingTransaction = null;
 						appState.isTransactionModalOpen = true;
 					}}
-					class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#eeebe3] hover:bg-white text-[#111110] font-medium text-xs transition-colors shadow-sm"
+					class="flex items-center gap-1 px-3 sm:px-3 py-2 sm:py-1.5 rounded-lg bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] font-medium text-xs transition-all shadow-sm min-h-[40px] sm:min-h-0"
+					aria-label="New Record"
 				>
 					<Plus class="w-3.5 h-3.5 stroke-[2.2]" />
-					<span>New</span>
+					<span class="font-semibold">New</span>
 				</button>
 
 				<a
 					href="/auth/logout"
-					class="p-1.5 rounded-lg text-stone-500 hover:text-rose-400 hover:bg-[#1c1b18] transition-colors"
+					class="p-2 sm:p-1.5 rounded-lg text-stone-500 hover:text-rose-400 hover:bg-[#1c1b18] transition-colors min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
 					title="Sign Out"
 					aria-label="Sign Out"
 				>
@@ -86,18 +88,36 @@
 			</div>
 		</div>
 	</div>
+</header>
 
-	<!-- Mobile Nav Bar -->
-	<div class="md:hidden border-t border-stone-800/80 bg-[#141412] px-2 py-1 flex items-center justify-between overflow-x-auto gap-1">
+<!-- Mobile Bottom Navigation Bar (Thumb Friendly & App-like) -->
+<nav
+	aria-label="Mobile Navigation"
+	class="md:hidden fixed bottom-0 left-0 right-0 z-40 border-t border-stone-800/90 bg-[#121210]/95 backdrop-blur-lg px-1 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom))] shadow-2xl"
+>
+	<div class="grid grid-cols-6 items-center">
 		{#each tabs as tab}
+			{@const TabIcon = tab.icon}
 			<button
 				onclick={() => (appState.activeTab = tab.id)}
-				class="flex-1 py-1.5 px-2 rounded-md text-[11px] font-medium text-center transition-colors {appState.activeTab === tab.id
-					? 'bg-[#1f1e1b] text-[#f5f2ea]'
-					: 'text-stone-400 hover:text-stone-200'}"
+				class="flex flex-col items-center justify-center py-1 px-0.5 rounded-lg transition-all min-h-[44px] {appState.activeTab === tab.id
+					? 'text-[#f5f2ea] font-semibold'
+					: 'text-stone-500 hover:text-stone-300'}"
 			>
-				{tab.label}
+				<TabIcon
+					class="w-4 h-4 transition-transform {appState.activeTab === tab.id
+						? 'scale-110 text-[#c9b48b]'
+						: 'text-stone-500'}"
+				/>
+				<span class="text-[9px] mt-0.5 tracking-tight truncate max-w-full">
+					{tab.label}
+				</span>
+				{#if appState.activeTab === tab.id}
+					<span class="w-1 h-1 rounded-full bg-[#c9b48b] mt-0.5"></span>
+				{:else}
+					<span class="w-1 h-1 rounded-full bg-transparent mt-0.5"></span>
+				{/if}
 			</button>
 		{/each}
 	</div>
-</header>
+</nav>

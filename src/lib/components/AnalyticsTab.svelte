@@ -144,17 +144,17 @@
 	<!-- Page Header & Timeframe Switcher -->
 	<div class="flex flex-col sm:flex-row sm:items-end justify-between border-b border-stone-800/80 pb-4 gap-3">
 		<div>
-			<div class="text-[11px] font-medium tracking-wider text-stone-500 uppercase">Capital Allocation</div>
-			<h1 class="text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Category Distribution</h1>
+			<div class="text-[10px] sm:text-[11px] font-medium tracking-wider text-stone-500 uppercase">Capital Allocation</div>
+			<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Category Distribution</h1>
 		</div>
 
-		<!-- Time Switcher Tabs -->
-		<div class="flex items-center p-0.5 bg-[#171715] border border-stone-800 rounded-lg text-xs flex-wrap">
+		<!-- Time Switcher Tabs (2x2 on mobile, flex on desktop) -->
+		<div class="grid grid-cols-2 sm:flex items-center p-1 bg-[#171715] border border-stone-800 rounded-xl text-xs w-full sm:w-auto gap-1">
 			<button
 				type="button"
 				onclick={() => (timeRange = 'this_month')}
-				class="px-3 py-1 rounded-md transition-colors {timeRange === 'this_month'
-					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm'
+				class="py-2 sm:py-1 px-3 text-center rounded-lg transition-colors min-h-[36px] sm:min-h-0 {timeRange === 'this_month'
+					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm font-medium'
 					: 'text-stone-400 hover:text-stone-200'}"
 			>
 				This Month
@@ -162,8 +162,8 @@
 			<button
 				type="button"
 				onclick={() => (timeRange = 'last_month')}
-				class="px-3 py-1 rounded-md transition-colors {timeRange === 'last_month'
-					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm'
+				class="py-2 sm:py-1 px-3 text-center rounded-lg transition-colors min-h-[36px] sm:min-h-0 {timeRange === 'last_month'
+					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm font-medium'
 					: 'text-stone-400 hover:text-stone-200'}"
 			>
 				Last Month
@@ -174,8 +174,8 @@
 					timeRange = 'custom';
 					initCustomDates();
 				}}
-				class="px-3 py-1 rounded-md transition-colors {timeRange === 'custom'
-					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm'
+				class="py-2 sm:py-1 px-3 text-center rounded-lg transition-colors min-h-[36px] sm:min-h-0 {timeRange === 'custom'
+					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm font-medium'
 					: 'text-stone-400 hover:text-stone-200'}"
 			>
 				Custom Range
@@ -183,8 +183,8 @@
 			<button
 				type="button"
 				onclick={() => (timeRange = 'all')}
-				class="px-3 py-1 rounded-md transition-colors {timeRange === 'all'
-					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm'
+				class="py-2 sm:py-1 px-3 text-center rounded-lg transition-colors min-h-[36px] sm:min-h-0 {timeRange === 'all'
+					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm font-medium'
 					: 'text-stone-400 hover:text-stone-200'}"
 			>
 				All Time

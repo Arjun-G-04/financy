@@ -4,7 +4,6 @@
 	import { formatCurrency, suggestCategory } from '#lib/utils';
 	import {
 		RefreshCw,
-		Download,
 		Check,
 		ExternalLink,
 		FileSpreadsheet,
@@ -13,14 +12,15 @@
 		ArrowUpRight,
 		ArrowDownLeft,
 		Settings,
-		Pencil
+		Pencil,
+		Download
 	} from '@lucide/svelte';
 
 	import type { SheetRowItem } from '#lib/types';
 
-	let isImporting = $state(false);
-
 	appState.initSheetsSyncDates();
+
+	let isImporting = $state(false);
 
 	const newTransactions = $derived(
 		appState.sheetsSync.result?.transactions.filter((t) => !t.alreadyImported) || []
@@ -99,6 +99,39 @@
 		}
 	}
 
+	function handleOpenImportModal(tx: SheetRowItem) {
+		if (tx.alreadyImported) return;
+		appState.openSheetReviewModal(tx, handleConfirmImport);
+	}
+
+	async function handleConfirmImport(customized: {
+		id: string;
+		name: string;
+		amount: number;
+		type: 'credit' | 'debit';
+		date: string;
+		category: string | null;
+	}) {
+		const res = await fetch('/api/sheets/import', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify({
+				transactions: [customized]
+			})
+		});
+		const data = await res.json();
+		if (!data.success) throw new Error(data.error || 'Failed to save to ledger');
+
+		appState.showToast('success', 'Imported to Ledger', `Committed "${customized.name}"`);
+		await appState.refreshTransactions();
+
+		if (appState.sheetsSync.result) {
+			appState.sheetsSync.result.transactions = appState.sheetsSync.result.transactions.map((t) =>
+				t.id === customized.id ? { ...t, alreadyImported: true } : t
+			);
+		}
+	}
+
 	async function handleImportAll() {
 		if (!newTransactions.length) {
 			appState.showToast('info', 'Notice', 'No uncommitted records to import');
@@ -135,48 +168,16 @@
 			await appState.refreshTransactions();
 
 			if (appState.sheetsSync.result) {
-				appState.sheetsSync.result.transactions = appState.sheetsSync.result.transactions.map((t) => ({
-					...t,
-					alreadyImported: true
-				}));
+				const importedIds = new Set(payload.map((p) => p.id));
+				appState.sheetsSync.result.transactions = appState.sheetsSync.result.transactions.map((t) =>
+					importedIds.has(t.id) ? { ...t, alreadyImported: true } : t
+				);
 			}
 		} catch (err: any) {
+			console.error('Import all error:', err);
 			appState.showToast('error', 'Import Failed', err.message);
 		} finally {
 			isImporting = false;
-		}
-	}
-
-	function handleOpenImportModal(tx: SheetRowItem) {
-		if (tx.alreadyImported) return;
-		appState.openSheetReviewModal(tx, handleConfirmImport);
-	}
-
-	async function handleConfirmImport(customized: {
-		id: string;
-		name: string;
-		amount: number;
-		type: 'credit' | 'debit';
-		date: string;
-		category: string | null;
-	}) {
-		const res = await fetch('/api/sheets/import', {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({
-				transactions: [customized]
-			})
-		});
-		const data = await res.json();
-		if (!data.success) throw new Error(data.error || 'Failed to save to ledger');
-
-		appState.showToast('success', 'Imported to Ledger', `Committed "${customized.name}"`);
-		await appState.refreshTransactions();
-
-		if (appState.sheetsSync.result) {
-			appState.sheetsSync.result.transactions = appState.sheetsSync.result.transactions.map((t) =>
-				t.id === customized.id ? { ...t, alreadyImported: true } : t
-			);
 		}
 	}
 </script>
@@ -185,8 +186,8 @@
 	<!-- Page Header -->
 	<div class="border-b border-stone-800/80 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-3">
 		<div>
-			<div class="text-[11px] font-medium tracking-wider text-stone-500 uppercase">External Sync</div>
-			<h1 class="text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Google Sheets Pipeline</h1>
+			<div class="text-[10px] sm:text-[11px] font-medium tracking-wider text-stone-500 uppercase">External Sync</div>
+			<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Google Sheets Pipeline</h1>
 		</div>
 
 		<!-- Status Pills -->
@@ -196,7 +197,7 @@
 					href="https://docs.google.com/spreadsheets/d/{appState.settings.spreadsheetId.trim()}"
 					target="_blank"
 					rel="noopener noreferrer"
-					class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#171715] hover:bg-[#232320] border border-stone-800 text-[11px] font-mono text-stone-300 hover:text-stone-100 transition-colors"
+					class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#171715] hover:bg-[#232320] border border-stone-800 text-[11px] font-mono text-stone-300 hover:text-stone-100 transition-colors min-h-[34px]"
 					title="Open linked Google Sheet"
 				>
 					<FileSpreadsheet class="w-3.5 h-3.5 text-[#82b896]" />
@@ -207,58 +208,58 @@
 				<button
 					type="button"
 					onclick={() => (appState.activeTab = 'settings')}
-					class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#221c17] hover:bg-[#2e251e] border border-amber-900/60 text-[11px] font-mono text-amber-300 transition-colors"
+					class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#221c17] hover:bg-[#2e251e] border border-amber-900/60 text-[11px] font-mono text-amber-300 transition-colors min-h-[34px]"
 				>
 					<Settings class="w-3.5 h-3.5" />
 					<span>Configure in Settings</span>
 				</button>
 			{/if}
 
-			<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#171715] border border-stone-800 text-[11px] font-mono">
+			<div class="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#171715] border border-stone-800 text-[11px] font-mono min-h-[34px]">
 				<ShieldCheck class="w-3.5 h-3.5 text-[#82b896]" />
-				<span class="text-stone-300 truncate max-w-[200px]">{appState.user?.email || 'OAuth Session'}</span>
+				<span class="text-stone-300 truncate max-w-[160px] sm:max-w-[200px]">{appState.user?.email || 'OAuth Session'}</span>
 				<span class="inline-block w-1.5 h-1.5 rounded-full bg-[#82b896]"></span>
 			</div>
 		</div>
 	</div>
 
 	<!-- Controls Card -->
-	<div class="p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
+	<div class="p-4 sm:p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
 		<!-- Date Range Filters & Presets -->
 		<div class="space-y-3">
-			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
 				<div class="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
 					<Calendar class="w-3.5 h-3.5 text-stone-500" />
 					<span>Query Window</span>
 				</div>
 
-				<!-- Quick Presets -->
-				<div class="flex items-center gap-1.5 flex-wrap">
+				<!-- Quick Presets (2x2 on mobile) -->
+				<div class="grid grid-cols-2 sm:flex items-center gap-1.5 w-full sm:w-auto">
 					<button
 						type="button"
 						onclick={() => setPreset('7days')}
-						class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200 transition-colors"
+						class="px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded-md text-[11px] font-mono bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200 transition-colors text-center min-h-[34px] sm:min-h-0"
 					>
 						Last 7 Days
 					</button>
 					<button
 						type="button"
 						onclick={() => setPreset('month')}
-						class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200 transition-colors"
+						class="px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded-md text-[11px] font-mono bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200 transition-colors text-center min-h-[34px] sm:min-h-0"
 					>
 						This Month
 					</button>
 					<button
 						type="button"
 						onclick={() => setPreset('30days')}
-						class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200 transition-colors"
+						class="px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded-md text-[11px] font-mono bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200 transition-colors text-center min-h-[34px] sm:min-h-0"
 					>
 						Last 30 Days
 					</button>
 					<button
 						type="button"
 						onclick={() => setPreset('all')}
-						class="px-2.5 py-1 rounded-md text-[11px] font-mono bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200 transition-colors"
+						class="px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded-md text-[11px] font-mono bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200 transition-colors text-center min-h-[34px] sm:min-h-0"
 					>
 						All Rows
 					</button>
@@ -290,7 +291,7 @@
 				type="button"
 				onclick={handleFetch}
 				disabled={appState.sheetsSync.isLoading}
-				class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-semibold transition-all shadow-sm disabled:opacity-50"
+				class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-xl bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all shadow-sm disabled:opacity-50 min-h-[44px] sm:min-h-0"
 			>
 				<RefreshCw class="w-3.5 h-3.5 {appState.sheetsSync.isLoading ? 'animate-spin' : ''}" />
 				<span>{appState.sheetsSync.isLoading ? 'Querying Google Sheets...' : 'Fetch Sheet Rows'}</span>
@@ -298,13 +299,13 @@
 		</div>
 	</div>
 
-	<!-- Fetched Results Table -->
+	<!-- Fetched Results -->
 	{#if appState.sheetsSync.result}
-		<div class="p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
+		<div class="p-4 sm:p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
 			<!-- Table Header & Batch Action -->
 			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800/80 pb-4">
 				<div>
-					<div class="text-sm font-semibold text-[#f5f2ea] flex items-center gap-2">
+					<div class="text-sm font-semibold text-[#f5f2ea] flex items-center gap-2 flex-wrap">
 						<span>{appState.sheetsSync.result.title}</span>
 						{#if appState.sheetsSync.result.sheetTitle}
 							<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-[#111110] text-stone-400 border border-stone-800">
@@ -319,15 +320,17 @@
 					</div>
 				</div>
 
-				<button
-					type="button"
-					onclick={handleImportAll}
-					disabled={isImporting || newTransactions.length === 0}
-					class="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-semibold transition-all disabled:opacity-40 shadow-sm"
-				>
-					<Download class="w-3.5 h-3.5 {isImporting ? 'animate-bounce' : ''}" />
-					<span>{isImporting ? 'Committing...' : `Commit All New (${newTransactions.length})`}</span>
-				</button>
+				{#if newTransactions.length > 0}
+					<button
+						type="button"
+						onclick={handleImportAll}
+						disabled={isImporting}
+						class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-xl bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all shadow-sm disabled:opacity-40 min-h-[44px] sm:min-h-0"
+					>
+						<Download class="w-3.5 h-3.5 {isImporting ? 'animate-bounce' : ''}" />
+						<span>{isImporting ? 'Committing...' : `Commit All New (${newTransactions.length})`}</span>
+					</button>
+				{/if}
 			</div>
 
 			<!-- Rows List -->
@@ -336,7 +339,68 @@
 					No transactions found in this date window on Google Sheets.
 				</div>
 			{:else}
-				<div class="border border-stone-800/80 rounded-xl overflow-x-auto">
+				<!-- Mobile Feed: Card List (sm:hidden) -->
+				<div class="sm:hidden divide-y divide-stone-800/60 -mx-1">
+					{#each appState.sheetsSync.result.transactions as tx (tx.id)}
+						<div
+							role="button"
+							tabindex="0"
+							onkeydown={(e) => {
+								if (e.key === 'Enter' || e.key === ' ') {
+									e.preventDefault();
+									handleOpenImportModal(tx);
+								}
+							}}
+							onclick={() => handleOpenImportModal(tx)}
+							class="p-3.5 flex flex-col gap-2 transition-colors text-left w-full {tx.alreadyImported
+								? 'opacity-55'
+								: 'active:bg-[#1a1917] cursor-pointer'}"
+						>
+							<div class="flex items-center justify-between gap-2">
+								<div class="flex items-center gap-2">
+									{#if tx.alreadyImported}
+										<span class="inline-flex items-center gap-1 text-[9px] font-mono text-stone-500 px-1.5 py-0.5 rounded bg-[#111110] border border-stone-800">
+											<Check class="w-2.5 h-2.5 text-[#82b896]" />
+											<span>IN LEDGER</span>
+										</span>
+									{:else}
+										<span class="inline-flex items-center gap-1 text-[9px] font-mono text-[#82b896] px-1.5 py-0.5 rounded bg-[#82b896]/10 border border-[#82b896]/20 font-semibold">
+											<span>NEW</span>
+										</span>
+									{/if}
+									<span class="text-stone-400 font-mono text-[11px] tabular-nums">{tx.date}</span>
+								</div>
+
+								<span class="font-mono tabular-nums text-xs font-semibold shrink-0 {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+									{formatCurrency(tx.amount)}
+								</span>
+							</div>
+
+							<div class="flex items-center justify-between gap-2 pt-0.5">
+								<div class="min-w-0 flex-1">
+									<div class="font-medium text-xs text-stone-200 truncate">{tx.merchant}</div>
+								</div>
+
+								{#if !tx.alreadyImported}
+									<button
+										type="button"
+										onclick={(e) => {
+											e.stopPropagation();
+											handleOpenImportModal(tx);
+										}}
+										class="px-2.5 py-1.5 rounded-lg bg-[#232320] active:bg-[#eeebe3] active:text-[#111110] text-stone-200 text-xs font-mono transition-colors border border-stone-700/60 inline-flex items-center gap-1 min-h-[34px] shrink-0"
+									>
+										<Pencil class="w-3 h-3" />
+										<span>Edit & Import</span>
+									</button>
+								{/if}
+							</div>
+						</div>
+					{/each}
+				</div>
+
+				<!-- Tablet & Desktop Table (hidden sm:block) -->
+				<div class="hidden sm:block border border-stone-800/80 rounded-xl overflow-x-auto">
 					<table class="w-full text-left text-xs">
 						<thead class="bg-[#141412] border-b border-stone-800 text-[10px] font-semibold text-stone-500 uppercase tracking-wider">
 							<tr>
@@ -377,9 +441,6 @@
 									<!-- Description -->
 									<td class="px-3.5 py-2.5 text-stone-200">
 										<div class="font-medium">{tx.merchant}</div>
-										{#if tx.raw && tx.raw !== tx.merchant}
-											<div class="text-[10px] text-stone-500 font-mono truncate max-w-xs">{tx.raw}</div>
-										{/if}
 									</td>
 
 									<!-- Amount -->
