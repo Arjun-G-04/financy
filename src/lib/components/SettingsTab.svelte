@@ -242,4 +242,22 @@
 			</button>
 		</div>
 	</div>
+
+	<!-- User Session Card -->
+	<div class="p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
+		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Authenticated Account</div>
+		<div class="flex items-center justify-between">
+			<div>
+				<div class="text-sm font-medium text-stone-200">{appState.user?.name || 'Authorized Account'}</div>
+				<div class="text-xs text-stone-500 font-mono">{appState.user?.email || 'Protected Session'}</div>
+			</div>
+
+			<a
+				href="/auth/logout"
+				class="px-3 py-1.5 rounded-lg bg-[#22211e] hover:bg-rose-950/40 text-stone-300 hover:text-rose-300 border border-stone-800 hover:border-rose-800/50 text-xs transition-colors"
+			>
+				Sign Out
+			</a>
+		</div>
+	</div>
 </div>

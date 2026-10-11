@@ -11,9 +11,14 @@ export const GET: RequestHandler = async () => {
 	}
 };
 
+import { cleanSpreadsheetId } from '#lib/server/googleSheets';
+
 export const POST: RequestHandler = async ({ request }) => {
 	try {
 		const body = await request.json();
+		if (body.spreadsheetId !== undefined) {
+			body.spreadsheetId = cleanSpreadsheetId(body.spreadsheetId);
+		}
 		await saveSettings(body);
 		const updated = await getSettings();
 		return json({ success: true, settings: updated });

@@ -1,12 +1,33 @@
-import type { LocalTransaction, Category, AppSettings } from '#lib/server/db';
+import type {
+	LocalTransaction,
+	Category,
+	AppSettings,
+	TabType,
+	ToastMessage,
+	SheetRowItem,
+	SheetsSyncState
+} from '#lib/types';
 
-export type TabType = 'home' | 'history' | 'analytics' | 'reconcile' | 'import' | 'settings';
+export type {
+	LocalTransaction,
+	Category,
+	AppSettings,
+	TabType,
+	ToastMessage,
+	SheetRowItem,
+	SheetsSyncState
+};
 
-export interface ToastMessage {
-	id: string;
-	type: 'success' | 'error' | 'info';
-	title: string;
-	message?: string;
+export interface SheetReviewContext {
+	transaction: SheetRowItem;
+	onConfirm: (item: {
+		id: string;
+		name: string;
+		amount: number;
+		type: 'credit' | 'debit';
+		date: string;
+		category: string | null;
+	}) => Promise<void>;
 }
 
 class AppState {
@@ -25,9 +46,18 @@ class AppState {
 		}
 	});
 
+	sheetsSync = $state<SheetsSyncState>({
+		startDate: '',
+		endDate: '',
+		isLoading: false,
+		result: null
+	});
+
+	user = $state<{ id: string; email: string; name: string; picture?: string } | null>(null);
 	activeTab = $state<TabType>('home');
 	isTransactionModalOpen = $state<boolean>(false);
 	editingTransaction = $state<LocalTransaction | null>(null);
+	sheetReviewContext = $state<SheetReviewContext | null>(null);
 	toasts = $state<ToastMessage[]>([]);
 	isLoading = $state<boolean>(false);
 
@@ -44,13 +74,55 @@ class AppState {
 
 	// Initialize from SSR data
 	init(initialData: {
+		user?: { id: string; email: string; name: string; picture?: string } | null;
 		transactions: LocalTransaction[];
 		categories: Category[];
 		settings: AppSettings;
 	}) {
+		this.user = initialData.user || null;
 		this.transactions = initialData.transactions || [];
 		this.categories = initialData.categories || [];
 		this.settings = initialData.settings || this.settings;
+		this.initSheetsSyncDates();
+	}
+
+	initSheetsSyncDates() {
+		if (!this.sheetsSync.startDate || !this.sheetsSync.endDate) {
+			const now = new Date();
+			const y = now.getFullYear();
+			const m = String(now.getMonth() + 1).padStart(2, '0');
+			const d = String(now.getDate()).padStart(2, '0');
+			this.sheetsSync.startDate = `${y}-${m}-01`;
+			this.sheetsSync.endDate = `${y}-${m}-${d}`;
+		}
+	}
+
+	openTransactionModal(tx?: LocalTransaction | null) {
+		this.sheetReviewContext = null;
+		this.editingTransaction = tx || null;
+		this.isTransactionModalOpen = true;
+	}
+
+	openSheetReviewModal(
+		tx: SheetRowItem,
+		onConfirm: (item: {
+			id: string;
+			name: string;
+			amount: number;
+			type: 'credit' | 'debit';
+			date: string;
+			category: string | null;
+		}) => Promise<void>
+	) {
+		this.editingTransaction = null;
+		this.sheetReviewContext = { transaction: tx, onConfirm };
+		this.isTransactionModalOpen = true;
+	}
+
+	closeTransactionModal() {
+		this.isTransactionModalOpen = false;
+		this.editingTransaction = null;
+		this.sheetReviewContext = null;
 	}
 
 	showToast(type: 'success' | 'error' | 'info', title: string, message?: string) {
@@ -68,6 +140,14 @@ class AppState {
 			const data = await res.json();
 			if (data.success) {
 				this.transactions = data.transactions;
+				// Sync alreadyImported flags if sheets sync result exists
+				if (this.sheetsSync.result) {
+					const txIdSet = new Set(this.transactions.map((t) => t.id));
+					this.sheetsSync.result.transactions = this.sheetsSync.result.transactions.map((t) => ({
+						...t,
+						alreadyImported: t.alreadyImported || txIdSet.has(t.id)
+					}));
+				}
 			}
 		} catch (err) {
 			console.error('Failed to load transactions:', err);

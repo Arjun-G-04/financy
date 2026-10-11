@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { appState } from '#lib/state.svelte';
-	import type { LocalTransaction } from '#lib/server/db';
+	import type { LocalTransaction } from '#lib/types';
+	import { formatCurrency as formatCur } from '#lib/utils';
 	import {
 		ArrowRight,
 		Pencil,
@@ -41,8 +42,7 @@
 	const recentTransactions = $derived(appState.transactions.slice(0, 10));
 
 	function formatCurrency(val: number) {
-		const sym = appState.settings.currencySymbol || '₹';
-		return `${sym}${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		return formatCur(val, appState.settings.currencySymbol);
 	}
 
 	async function handleDelete(tx: LocalTransaction) {
@@ -144,52 +144,70 @@
 			</button>
 		</div>
 
-		<div class="border border-stone-800/80 rounded-xl bg-[#171715] divide-y divide-stone-800/60 overflow-hidden">
+		<div class="border border-stone-800/80 rounded-xl bg-[#171715] overflow-hidden">
 			{#if recentTransactions.length === 0}
 				<div class="py-12 text-center text-stone-500 text-xs">
 					No records found.
 				</div>
 			{:else}
-				{#each recentTransactions as tx (tx.id)}
-					<div class="px-4 py-3 flex items-center justify-between hover:bg-[#1d1c19] transition-colors group">
-						<div class="flex items-center gap-3 min-w-0">
-							<span class="text-xs font-mono tabular-nums text-stone-500 shrink-0">{tx.date}</span>
-							<span class="text-sm font-medium text-stone-200 truncate">{tx.name}</span>
-							{#if tx.category}
-								<span class="text-[11px] text-stone-400 px-2 py-0.5 rounded bg-[#1f1e1b] border border-stone-800 shrink-0">
-									{tx.category}
-								</span>
-							{/if}
-						</div>
-
-						<div class="flex items-center gap-4 shrink-0">
-							<span class="font-mono tabular-nums text-sm font-semibold {tx.type === 'credit' ? 'text-[#82b896]' : 'text-stone-200'}">
-								{tx.type === 'credit' ? '+' : '-'}{formatCurrency(tx.amount)}
-							</span>
-
-							<!-- Action Buttons -->
-							<div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-								<button
-									onclick={() => {
-										appState.editingTransaction = tx;
-										appState.isTransactionModalOpen = true;
-									}}
-									class="p-1 rounded text-stone-400 hover:text-stone-200 transition-colors"
-									title="Edit"
-								>
-									<Pencil class="w-3.5 h-3.5" />
-								</button>
-								<button
-									onclick={() => handleDelete(tx)}
-									class="p-1 rounded text-stone-400 hover:text-rose-400 transition-colors"
-									title="Delete"
-								>
-									<Trash2 class="w-3.5 h-3.5" />
-								</button>
-							</div>
-						</div>
-					</div>
-				{/each}
+				<div class="overflow-x-auto">
+					<table class="w-full text-left text-xs">
+						<thead class="bg-[#141412] border-b border-stone-800 text-[10px] font-semibold text-stone-500 uppercase tracking-wider">
+							<tr>
+								<th class="px-4 py-3">Date</th>
+								<th class="px-4 py-3">Description</th>
+								<th class="px-4 py-3">Category</th>
+								<th class="px-4 py-3 text-right">Amount</th>
+								<th class="px-4 py-3 text-right"></th>
+							</tr>
+						</thead>
+						<tbody class="divide-y divide-stone-800/60 font-sans">
+							{#each recentTransactions as tx (tx.id)}
+								<tr class="hover:bg-[#1d1c19] transition-colors group">
+									<td class="px-4 py-3 whitespace-nowrap text-stone-500 font-mono tabular-nums">
+										{tx.date}
+									</td>
+									<td class="px-4 py-3 text-stone-200 font-medium">
+										{tx.name}
+									</td>
+									<td class="px-4 py-3 whitespace-nowrap">
+										{#if tx.category}
+											<span class="px-2 py-0.5 rounded text-[11px] bg-[#1f1e1b] text-stone-400 border border-stone-800">
+												{tx.category}
+											</span>
+										{:else}
+											<span class="text-stone-600">—</span>
+										{/if}
+									</td>
+									<td class="px-4 py-3 whitespace-nowrap text-right font-mono tabular-nums text-sm font-semibold {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+										{formatCurrency(tx.amount)}
+									</td>
+									<td class="px-4 py-3 whitespace-nowrap text-right">
+										<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+											<button
+												onclick={() => {
+													appState.editingTransaction = tx;
+													appState.isTransactionModalOpen = true;
+												}}
+												class="p-1 rounded text-stone-400 hover:text-stone-200 transition-colors"
+												title="Edit"
+											>
+												<Pencil class="w-3.5 h-3.5" />
+											</button>
+											<button
+												onclick={() => handleDelete(tx)}
+												class="p-1 rounded text-stone-400 hover:text-rose-400 transition-colors"
+												title="Delete"
+											>
+												<Trash2 class="w-3.5 h-3.5" />
+											</button>
+										</div>
+									</td>
+								</tr>
+							{/each}
+						</tbody>
+					</table>
+				</div>
 			{/if}
 		</div>
 	</div>

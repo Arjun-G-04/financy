@@ -7,7 +7,8 @@
 		Scale,
 		FileSpreadsheet,
 		Settings,
-		Plus
+		Plus,
+		LogOut
 	} from '@lucide/svelte';
 
 	const tabs: { id: TabType; label: string; icon: any }[] = [
@@ -73,6 +74,15 @@
 					<Plus class="w-3.5 h-3.5 stroke-[2.2]" />
 					<span>New</span>
 				</button>
+
+				<a
+					href="/auth/logout"
+					class="p-1.5 rounded-lg text-stone-500 hover:text-rose-400 hover:bg-[#1c1b18] transition-colors"
+					title="Sign Out"
+					aria-label="Sign Out"
+				>
+					<LogOut class="w-3.5 h-3.5" />
+				</a>
 			</div>
 		</div>
 	</div>

@@ -47,11 +47,6 @@
 		{/if}
 	</main>
 
-	<!-- Footer -->
-	<footer class="border-t border-stone-850/80 py-6 text-center text-xs text-stone-500">
-		<p>Financy • Turso libSQL • SvelteKit</p>
-	</footer>
-
 	<!-- Global Overlays -->
 	<TransactionModal />
 	<Toast />

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { appState } from '#lib/state.svelte';
-	import type { LocalTransaction } from '#lib/server/db';
+	import type { LocalTransaction } from '#lib/types';
+	import { formatCurrency as formatCur } from '#lib/utils';
 	import {
 		Search,
 		Pencil,
@@ -50,8 +51,7 @@
 	});
 
 	function formatCurrency(val: number) {
-		const sym = appState.settings.currencySymbol || '₹';
-		return `${sym}${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+		return formatCur(val, appState.settings.currencySymbol);
 	}
 
 	async function handleDelete(tx: LocalTransaction) {
@@ -240,8 +240,8 @@
 										<span class="text-stone-600">—</span>
 									{/if}
 								</td>
-								<td class="px-4 py-3 whitespace-nowrap text-right font-mono tabular-nums text-sm font-semibold {tx.type === 'credit' ? 'text-[#82b896]' : 'text-stone-200'}">
-									{tx.type === 'credit' ? '+' : '-'}{formatCurrency(tx.amount)}
+								<td class="px-4 py-3 whitespace-nowrap text-right font-mono tabular-nums text-sm font-semibold {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+									{formatCurrency(tx.amount)}
 								</td>
 								<td class="px-4 py-3 whitespace-nowrap text-right">
 									<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

@@ -2,42 +2,13 @@ import { createClient } from '@libsql/client';
 import fs from 'node:fs';
 import path from 'node:path';
 
-export interface LocalTransaction {
-	id: string;
-	date: string; // YYYY-MM-DD
-	type: 'credit' | 'debit';
-	amount: number;
-	name: string;
-	category?: string | null;
-	createdAt?: number;
-}
-
-export interface Category {
-	id: string;
-	name: string;
-}
-
-export interface ReconciliationState {
-	ccDebt: string;
-	hdfc: string;
-	kvb: string;
-	cash: string;
-	creditsOwed: string;
-	lastUpdated: string;
-}
-
-export interface AppSettings {
-	spreadsheetId: string;
-	currencySymbol: string;
-	reconciliation: ReconciliationState;
-}
-
-const url = process.env.TURSO_DATABASE_URL?.trim() || 'file:local.db';
-const authToken = process.env.TURSO_AUTH_TOKEN?.trim() || undefined;
+import type { LocalTransaction, Category, ReconciliationState, AppSettings } from '#lib/types';
+export type { LocalTransaction, Category, ReconciliationState, AppSettings };
+import { env } from '#lib/server/env';
 
 export const db = createClient({
-	url,
-	authToken
+	url: env.TURSO_DATABASE_URL,
+	authToken: env.TURSO_AUTH_TOKEN
 });
 
 let isInitialized = false;
@@ -275,6 +246,59 @@ export async function saveTransaction(tx: {
 		category: tx.category || null,
 		createdAt
 	};
+}
+
+export async function getExistingTransactionIds(ids: string[]): Promise<Set<string>> {
+	if (!ids || ids.length === 0) return new Set();
+	await initDb();
+
+	const CHUNK_SIZE = 100;
+	const existing = new Set<string>();
+
+	for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+		const chunk = ids.slice(i, i + CHUNK_SIZE);
+		const placeholders = chunk.map(() => '?').join(',');
+		const result = await db.execute({
+			sql: `SELECT id FROM transactions WHERE id IN (${placeholders})`,
+			args: chunk
+		});
+		for (const row of result.rows) {
+			existing.add(String(row.id));
+		}
+	}
+
+	return existing;
+}
+
+export async function saveTransactionsBatch(txs: Array<{
+	id?: string;
+	date: string;
+	type: 'credit' | 'debit';
+	amount: number;
+	name: string;
+	category?: string | null;
+	createdAt?: number;
+}>): Promise<number> {
+	if (!txs || txs.length === 0) return 0;
+	await initDb();
+
+	const statements = txs.map((tx) => {
+		const id = tx.id || `tx_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+		const createdAt = tx.createdAt ?? Date.now();
+		return {
+			sql: `INSERT OR REPLACE INTO transactions (id, date, type, amount, name, category, created_at)
+			      VALUES (?, ?, ?, ?, ?, ?, ?)`,
+			args: [id, tx.date, tx.type, Number(tx.amount), tx.name.trim(), tx.category || null, createdAt]
+		};
+	});
+
+	const CHUNK_SIZE = 100;
+	for (let i = 0; i < statements.length; i += CHUNK_SIZE) {
+		const chunk = statements.slice(i, i + CHUNK_SIZE);
+		await db.batch(chunk);
+	}
+
+	return txs.length;
 }
 
 export async function deleteTransaction(id: string): Promise<void> {
