@@ -85,10 +85,7 @@
 		</div>
 
 		<button
-			onclick={() => {
-				appState.editingTransaction = null;
-				appState.isTransactionModalOpen = true;
-			}}
+			onclick={() => appState.openTransactionModal()}
 			class="flex items-center gap-1.5 px-3 py-2 sm:py-1.5 rounded-lg bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] font-medium text-xs transition-all shadow-sm min-h-[36px] sm:min-h-0"
 		>
 			<Plus class="w-3.5 h-3.5 stroke-[2.2]" />

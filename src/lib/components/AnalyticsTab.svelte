@@ -2,7 +2,7 @@
 	import { appState } from '#lib/state.svelte';
 	import DatePicker from '#lib/components/DatePicker.svelte';
 	import AllocationRing from '#lib/components/AllocationRing.svelte';
-	import { formatCurrency as formatCur } from '#lib/utils';
+	import { formatCurrency as formatCur, getCategoryColor, getPresetDateRange } from '#lib/utils';
 	import { Calendar, Eye, EyeOff, RotateCcw } from '@lucide/svelte';
 
 	let timeRange = $state<'this_month' | 'last_month' | 'custom' | 'all'>('this_month');
@@ -10,26 +10,6 @@
 	let customEndDate = $state('');
 	let excludedCategories = $state<string[]>([]);
 	let hoveredCategory = $state<string | null>(null);
-
-	// Palette for categories in ring & bars
-	const categoryColors = [
-		'#82b896', // Sage
-		'#7aa2f7', // Slate blue
-		'#e0af68', // Warm amber
-		'#bb9af7', // Lavender
-		'#f7768e', // Rose
-		'#2ac3de', // Cyan
-		'#ff9e64', // Coral orange
-		'#9ece6a', // Lime
-		'#b4befe', // Periwinkle
-		'#e5c07b', // Ochre
-		'#c0caf5', // Silver blue
-		'#a9b1d6'  // Muted steel
-	];
-
-	function getCategoryColor(index: number) {
-		return categoryColors[index % categoryColors.length];
-	}
 
 	function formatCurrency(val: number) {
 		return formatCur(val, appState.settings.currencySymbol);
@@ -43,11 +23,9 @@
 	// Set default custom dates if not set
 	function initCustomDates() {
 		if (!customStartDate || !customEndDate) {
-			const y = now.getFullYear();
-			const m = String(now.getMonth() + 1).padStart(2, '0');
-			const d = String(now.getDate()).padStart(2, '0');
-			customStartDate = `${y}-${m}-01`;
-			customEndDate = `${y}-${m}-${d}`;
+			const { start, end } = getPresetDateRange('month');
+			customStartDate = start;
+			customEndDate = end;
 		}
 	}
 
@@ -119,11 +97,11 @@
 
 		const total = activeExpenseTotal > 0 ? activeExpenseTotal : 1;
 		const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]);
-		return sorted.map(([name, amount], idx) => ({
+		return sorted.map(([name, amount]) => ({
 			name,
 			amount,
 			percentage: (amount / total) * 100,
-			color: getCategoryColor(idx)
+			color: getCategoryColor(name)
 		}));
 	});
 

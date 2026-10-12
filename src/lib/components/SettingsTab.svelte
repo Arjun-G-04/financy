@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { appState } from '#lib/state.svelte';
+	import { getCategoryColor } from '#lib/utils';
 	import {
 		Download,
 		Upload,
@@ -191,7 +192,8 @@
 
 		<div class="flex flex-wrap gap-1.5 pt-1">
 			{#each appState.categories as cat (cat.id)}
-				<div class="inline-flex items-center gap-1.5 px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#111110] border border-stone-800 text-xs text-stone-300 min-h-[32px] sm:min-h-0">
+				<div class="inline-flex items-center gap-2 px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#111110] border border-stone-800 text-xs text-stone-300 min-h-[32px] sm:min-h-0">
+					<span class="w-2 h-2 rounded-full shrink-0" style="background-color: {getCategoryColor(cat.name)};"></span>
 					<span>{cat.name}</span>
 					<button
 						onclick={() => handleDeleteCategory(cat.id, cat.name)}

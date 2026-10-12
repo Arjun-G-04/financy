@@ -7,6 +7,7 @@ import type {
 	SheetRowItem,
 	SheetsSyncState
 } from '#lib/types';
+import { getPresetDateRange } from '#lib/utils';
 
 export type {
 	LocalTransaction,
@@ -88,12 +89,9 @@ class AppState {
 
 	initSheetsSyncDates() {
 		if (!this.sheetsSync.startDate || !this.sheetsSync.endDate) {
-			const now = new Date();
-			const y = now.getFullYear();
-			const m = String(now.getMonth() + 1).padStart(2, '0');
-			const d = String(now.getDate()).padStart(2, '0');
-			this.sheetsSync.startDate = `${y}-${m}-01`;
-			this.sheetsSync.endDate = `${y}-${m}-${d}`;
+			const { start, end } = getPresetDateRange('7days');
+			this.sheetsSync.startDate = start;
+			this.sheetsSync.endDate = end;
 		}
 	}
 

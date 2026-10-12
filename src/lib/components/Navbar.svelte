@@ -7,9 +7,10 @@
 		Scale,
 		FileSpreadsheet,
 		Settings,
-		Plus,
 		LogOut
 	} from '@lucide/svelte';
+
+	import { formatCurrency } from '#lib/utils';
 
 	const tabs: { id: TabType; label: string; icon: any }[] = [
 		{ id: 'home', label: 'Overview', icon: LayoutDashboard },
@@ -20,9 +21,8 @@
 		{ id: 'settings', label: 'Settings', icon: Settings }
 	];
 
-	function formatCurrency(val: number) {
-		const sym = appState.settings.currencySymbol || '₹';
-		return `${sym}${val.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+	function formatNetPosition(val: number) {
+		return formatCurrency(val, appState.settings.currencySymbol);
 	}
 </script>
 
@@ -61,25 +61,13 @@
 				<div class="flex flex-col text-right">
 					<span class="hidden sm:inline text-[10px] uppercase tracking-wider text-stone-500 font-medium">Net Position</span>
 					<span class="text-[11px] sm:text-xs font-mono tabular-nums font-semibold px-2 py-0.5 rounded-md bg-[#171715] sm:bg-transparent border border-stone-800/80 sm:border-0 {appState.netBalance >= 0 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
-						{formatCurrency(appState.netBalance)}
+						{formatNetPosition(appState.netBalance)}
 					</span>
 				</div>
 
-				<button
-					onclick={() => {
-						appState.editingTransaction = null;
-						appState.isTransactionModalOpen = true;
-					}}
-					class="flex items-center gap-1 px-3 sm:px-3 py-2 sm:py-1.5 rounded-lg bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] font-medium text-xs transition-all shadow-sm min-h-[40px] sm:min-h-0"
-					aria-label="New Record"
-				>
-					<Plus class="w-3.5 h-3.5 stroke-[2.2]" />
-					<span class="font-semibold">New</span>
-				</button>
-
 				<a
 					href="/auth/logout"
-					class="p-2 sm:p-1.5 rounded-lg text-stone-500 hover:text-rose-400 hover:bg-[#1c1b18] transition-colors min-h-[40px] min-w-[40px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
+					class="p-2 sm:p-1.5 rounded-lg text-stone-500 hover:text-rose-400 hover:bg-[#1c1b18] transition-colors min-h-[44px] min-w-[44px] sm:min-h-0 sm:min-w-0 flex items-center justify-center"
 					title="Sign Out"
 					aria-label="Sign Out"
 				>
