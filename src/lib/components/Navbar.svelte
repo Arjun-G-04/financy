@@ -27,7 +27,7 @@
 </script>
 
 <header class="sticky top-0 z-40 w-full border-b border-stone-800/80 bg-[#111110]/95 backdrop-blur-md">
-	<div class="max-w-6xl mx-auto px-3 sm:px-6">
+	<div class="w-full px-3.5 sm:px-6 lg:px-8">
 		<div class="flex items-center justify-between h-14 sm:h-16">
 			<!-- Minimalist Brand -->
 			<div class="flex items-center gap-2 sm:gap-3">

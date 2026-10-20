@@ -2,7 +2,8 @@
 	import { appState } from '#lib/state.svelte';
 	import DatePicker from '#lib/components/DatePicker.svelte';
 	import AllocationRing from '#lib/components/AllocationRing.svelte';
-	import { formatCurrency as formatCur, getCategoryColor, getPresetDateRange } from '#lib/utils';
+import DailySpendChart from '#lib/components/DailySpendChart.svelte';
+	import { formatCurrency as formatCur, formatDate, getCategoryColor, getPresetDateRange } from '#lib/utils';
 	import { Calendar, Eye, EyeOff, RotateCcw } from '@lucide/svelte';
 
 	let timeRange = $state<'this_month' | 'last_month' | 'custom' | 'all'>('this_month');
@@ -44,6 +45,30 @@
 			});
 		}
 		return appState.transactions;
+	});
+
+	// Active date boundaries for trend projections
+	const activeDateWindow = $derived.by(() => {
+		if (timeRange === 'this_month') {
+			const start = `${thisMonthStr}-01`;
+			const end = formatDate(now);
+			return { start, end };
+		}
+		if (timeRange === 'last_month') {
+			const start = `${lastMonthStr}-01`;
+			const lastDay = new Date(lastMonthDate.getFullYear(), lastMonthDate.getMonth() + 1, 0).getDate();
+			const end = `${lastMonthStr}-${String(lastDay).padStart(2, '0')}`;
+			return { start, end };
+		}
+		if (timeRange === 'custom') {
+			return { start: customStartDate, end: customEndDate };
+		}
+		// 'all'
+		if (activeExpenseTxs.length > 0) {
+			const dates = activeExpenseTxs.map((t) => t.date).sort();
+			return { start: dates[0], end: dates[dates.length - 1] };
+		}
+		return { start: formatDate(new Date(now.getTime() - 30 * 86400000)), end: formatDate(now) };
 	});
 
 	// Totals of all debit/credit in the selected date window (before category exclusions)
@@ -122,8 +147,7 @@
 	<!-- Page Header & Timeframe Switcher -->
 	<div class="flex flex-col sm:flex-row sm:items-end justify-between border-b border-stone-800/80 pb-4 gap-3">
 		<div>
-			<div class="text-[10px] sm:text-[11px] font-medium tracking-wider text-stone-500 uppercase">Capital Allocation</div>
-			<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Category Distribution</h1>
+			<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea]">Financial Analytics</h1>
 		</div>
 
 		<!-- Time Switcher Tabs (2x2 on mobile, flex on desktop) -->
@@ -242,14 +266,14 @@
 		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[11px] text-stone-500 font-medium uppercase tracking-wider">Inflow</div>
 			<div class="text-xl font-mono tabular-nums font-semibold text-[#82b896]">
-				+{formatCurrency(totals.credit)}
+				{formatCurrency(totals.credit)}
 			</div>
 		</div>
 
 		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[11px] text-stone-500 font-medium uppercase tracking-wider">Active Outflow</div>
-			<div class="text-xl font-mono tabular-nums font-semibold text-stone-300">
-				-{formatCurrency(totals.debit)}
+			<div class="text-xl font-mono tabular-nums font-semibold text-[#e06c75]">
+				{formatCurrency(totals.debit)}
 			</div>
 			{#if rawTotals.debit !== totals.debit}
 				<div class="text-[10px] font-mono text-stone-500">
@@ -260,13 +284,13 @@
 
 		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[11px] text-stone-500 font-medium uppercase tracking-wider">Active Net Flow</div>
-			<div class="text-xl font-mono tabular-nums font-semibold {totals.net >= 0 ? 'text-[#82b896]' : 'text-stone-300'}">
-				{totals.net >= 0 ? '+' : ''}{formatCurrency(totals.net)}
+			<div class="text-xl font-mono tabular-nums font-semibold {totals.net >= 0 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+				{formatCurrency(Math.abs(totals.net))}
 			</div>
 		</div>
 	</div>
 
-	<!-- Decomposed Capital Allocation Ring Chart Component -->
+	<!-- Category Allocation Ring Component -->
 	<AllocationRing categories={categoryBreakdown} totalAmount={activeExpenseTotal} />
 
 	<!-- Category List Card (Horizontal Bars Section) -->
@@ -313,4 +337,11 @@
 			</div>
 		{/if}
 	</div>
+
+	<!-- Daily Spend Trend Chart Component (Spend per Day vs Days) -->
+	<DailySpendChart
+		transactions={activeExpenseTxs}
+		startDate={activeDateWindow.start}
+		endDate={activeDateWindow.end}
+	/>
 </div>

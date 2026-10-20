@@ -10,12 +10,21 @@ export const GET: RequestHandler = async ({ url }) => {
 		const type = url.searchParams.get('type') || undefined;
 		const search = url.searchParams.get('search') || undefined;
 
+		const limitStr = url.searchParams.get('limit');
+		const offsetStr = url.searchParams.get('offset');
+		const rawLimit = limitStr ? parseInt(limitStr, 10) : undefined;
+		const rawOffset = offsetStr ? parseInt(offsetStr, 10) : undefined;
+		const limit = typeof rawLimit === 'number' && !isNaN(rawLimit) && rawLimit > 0 ? rawLimit : undefined;
+		const offset = typeof rawOffset === 'number' && !isNaN(rawOffset) && rawOffset >= 0 ? rawOffset : undefined;
+
 		const transactions = await getTransactions({
 			startDate,
 			endDate,
 			category,
 			type,
-			search
+			search,
+			limit,
+			offset
 		});
 
 		return json({ success: true, transactions });

@@ -62,14 +62,14 @@
 		<div class="p-3.5 sm:p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[10px] sm:text-[11px] text-stone-500 font-medium uppercase tracking-wider truncate">Total Inflow</div>
 			<div class="text-base sm:text-xl font-mono tabular-nums font-semibold text-[#82b896] truncate">
-				+{formatCurrency(appState.totalCredit)}
+				{formatCurrency(appState.totalCredit)}
 			</div>
 		</div>
 
 		<div class="p-3.5 sm:p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[10px] sm:text-[11px] text-stone-500 font-medium uppercase tracking-wider truncate">Total Outflow</div>
-			<div class="text-base sm:text-xl font-mono tabular-nums font-semibold text-stone-300 truncate">
-				-{formatCurrency(appState.totalDebit)}
+			<div class="text-base sm:text-xl font-mono tabular-nums font-semibold text-[#e06c75] truncate">
+				{formatCurrency(appState.totalDebit)}
 			</div>
 		</div>
 	</div>

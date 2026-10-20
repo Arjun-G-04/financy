@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { appState } from '#lib/state.svelte';
-	import { Check } from '@lucide/svelte';
+	import { Check, Clock } from '@lucide/svelte';
 
 	let ccDebt = $state('0');
 	let hdfc = $state('0');
@@ -29,6 +29,16 @@
 	const theoreticalMoney = $derived(appState.netBalance + numCcDebt);
 	const actualMoney = $derived(numHdfc + numKvb + numCash + numCredits);
 	const netDifference = $derived(theoreticalMoney - actualMoney);
+
+	const discrepancyColor = $derived.by(() => {
+		if (Math.abs(netDifference) < 0.01) {
+			return 'text-amber-400';
+		}
+		if (netDifference < 0) {
+			return 'text-[#82b896]';
+		}
+		return 'text-[#e06c75]';
+	});
 
 	function formatCurrency(val: number) {
 		const sym = appState.settings.currencySymbol || '₹';
@@ -70,15 +80,16 @@
 
 <div class="space-y-5 sm:space-y-6">
 	<!-- Page Header -->
-	<div class="flex flex-col sm:flex-row sm:items-baseline justify-between border-b border-stone-800/80 pb-4 gap-1.5">
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-stone-800/80 pb-4 gap-3">
 		<div>
-			<div class="text-[10px] sm:text-[11px] font-medium tracking-wider text-stone-500 uppercase">Audit & Balance</div>
-			<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Asset Holdings Reconciliation</h1>
+			<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea]">Asset Holdings Reconciliation</h1>
 		</div>
 
 		{#if lastUpdated}
-			<div class="text-[11px] sm:text-xs text-stone-500 font-mono">
-				Audit date: <span class="text-stone-300">{lastUpdated}</span>
+			<div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#171715] border border-stone-700/80 shadow-sm text-xs font-mono">
+				<Clock class="w-3.5 h-3.5 text-[#c9b48b]" />
+				<span class="text-stone-400 font-medium">Audit:</span>
+				<span class="text-[#f5f2ea] font-semibold">{lastUpdated}</span>
 			</div>
 		{/if}
 	</div>
@@ -103,11 +114,11 @@
 
 		<div class="p-3.5 sm:p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
 			<div class="text-[10px] text-stone-500 uppercase tracking-wider">Net Discrepancy</div>
-			<div class="text-lg sm:text-xl font-mono tabular-nums font-semibold truncate {Math.abs(netDifference) < 1 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+			<div class="text-lg sm:text-xl font-mono tabular-nums font-semibold truncate {discrepancyColor}">
 				{formatCurrency(netDifference)}
 			</div>
 			<div class="text-[10px] sm:text-[11px] text-stone-500">
-				{Math.abs(netDifference) < 1 ? 'Balanced to zero' : 'Pending reconciliation'}
+				{Math.abs(netDifference) < 0.01 ? 'Balanced to zero' : 'Pending reconciliation'}
 			</div>
 		</div>
 	</div>
@@ -218,7 +229,7 @@
 			<button
 				onclick={handleSaveReconciliation}
 				disabled={isSaving}
-				class="w-full sm:w-auto flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 rounded-lg bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all disabled:opacity-50 min-h-[44px] sm:min-h-0 shadow-sm"
+				class="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-2 rounded-xl bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all disabled:opacity-50 min-h-[40px] sm:min-h-[36px] shadow-sm"
 			>
 				<Check class="w-3.5 h-3.5 stroke-[2.2]" />
 				<span>{isSaving ? 'Saving...' : 'Update Holdings'}</span>

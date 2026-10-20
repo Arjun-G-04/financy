@@ -1,11 +1,10 @@
 <script lang="ts">
 	import { appState } from '#lib/state.svelte';
-	import DatePicker from '#lib/components/DatePicker.svelte';
-	import { formatCurrency, getPresetDateRange } from '#lib/utils';
+	import DateRangeFilter from '#lib/components/DateRangeFilter.svelte';
+	import { formatCurrency } from '#lib/utils';
 	import {
 		RefreshCw,
 		Check,
-		Calendar,
 		Pencil
 	} from '@lucide/svelte';
 
@@ -20,24 +19,6 @@
 	const newTransactions = $derived(
 		appState.sheetsSync.result?.transactions.filter((t) => !t.alreadyImported) || []
 	);
-
-	function setPreset(preset: '7days' | 'month' | '30days') {
-		const dates = getPresetDateRange(preset);
-		appState.sheetsSync.startDate = dates.start;
-		appState.sheetsSync.endDate = dates.end;
-	}
-
-	const activePreset = $derived.by(() => {
-		const s = appState.sheetsSync.startDate;
-		const e = appState.sheetsSync.endDate;
-		if (!s || !e) return null;
-
-		for (const preset of ['7days', 'month', '30days'] as const) {
-			const range = getPresetDateRange(preset);
-			if (s === range.start && e === range.end) return preset;
-		}
-		return null;
-	});
 
 	async function handleFetch() {
 		const spreadsheetId = appState.settings.spreadsheetId?.trim();
@@ -121,63 +102,12 @@
 	<!-- Controls Card -->
 	<div class="p-4 sm:p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
 		<!-- Date Range Filters & Presets -->
-		<div class="space-y-3">
-			<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-				<div class="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
-					<Calendar class="w-3.5 h-3.5 text-stone-500" />
-					<span>Query Window</span>
-				</div>
-
-				<!-- Quick Presets -->
-				<div class="grid grid-cols-3 sm:flex items-center gap-1.5 w-full sm:w-auto">
-					<button
-						type="button"
-						onclick={() => setPreset('7days')}
-						class="px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded-md text-[11px] font-mono transition-colors text-center min-h-[34px] sm:min-h-0 {activePreset === '7days'
-							? 'bg-[#1c1c19] text-[#f5f2ea] border border-stone-600 shadow-sm font-medium'
-							: 'bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200'}"
-					>
-						Last 7 Days
-					</button>
-					<button
-						type="button"
-						onclick={() => setPreset('month')}
-						class="px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded-md text-[11px] font-mono transition-colors text-center min-h-[34px] sm:min-h-0 {activePreset === 'month'
-							? 'bg-[#1c1c19] text-[#f5f2ea] border border-stone-600 shadow-sm font-medium'
-							: 'bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200'}"
-					>
-						This Month
-					</button>
-					<button
-						type="button"
-						onclick={() => setPreset('30days')}
-						class="px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded-md text-[11px] font-mono transition-colors text-center min-h-[34px] sm:min-h-0 {activePreset === '30days'
-							? 'bg-[#1c1c19] text-[#f5f2ea] border border-stone-600 shadow-sm font-medium'
-							: 'bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200'}"
-					>
-						Last 30 Days
-					</button>
-				</div>
-			</div>
-
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-				<div>
-					<DatePicker
-						bind:value={appState.sheetsSync.startDate}
-						label="From Date"
-						placeholder="Start date"
-					/>
-				</div>
-
-				<div>
-					<DatePicker
-						bind:value={appState.sheetsSync.endDate}
-						label="To Date"
-						placeholder="End date"
-					/>
-				</div>
-			</div>
-		</div>
+		<DateRangeFilter
+			bind:startDate={appState.sheetsSync.startDate}
+			bind:endDate={appState.sheetsSync.endDate}
+			presets={['7days', 'month', '30days']}
+			title="Query Window"
+		/>
 
 		<!-- Action Trigger -->
 		<div class="pt-3 border-t border-stone-800/60 flex items-center justify-end">
@@ -185,7 +115,7 @@
 				type="button"
 				onclick={handleFetch}
 				disabled={appState.sheetsSync.isLoading}
-				class="w-full sm:w-auto flex items-center justify-center gap-2 px-4 py-2.5 sm:py-2 rounded-xl bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all shadow-sm disabled:opacity-50 min-h-[44px] sm:min-h-0"
+				class="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-2 rounded-xl bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all shadow-sm disabled:opacity-50 min-h-[40px] sm:min-h-[36px]"
 			>
 				<RefreshCw class="w-3.5 h-3.5 {appState.sheetsSync.isLoading ? 'animate-spin' : ''}" />
 				<span>{appState.sheetsSync.isLoading ? 'Querying Google Sheets...' : 'Fetch Sheet Rows'}</span>

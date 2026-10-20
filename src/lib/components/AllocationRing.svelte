@@ -39,7 +39,7 @@
 
 <div class="p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
 	<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">
-		Capital Allocation Ring
+		Expense Allocation
 	</div>
 
 	{#if categories.length === 0}

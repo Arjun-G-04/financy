@@ -175,6 +175,8 @@ export async function getTransactions(filters?: {
 	category?: string;
 	type?: string;
 	search?: string;
+	limit?: number;
+	offset?: number;
 }): Promise<LocalTransaction[]> {
 	await initDb();
 
@@ -203,6 +205,15 @@ export async function getTransactions(filters?: {
 	}
 
 	sql += ' ORDER BY date DESC, COALESCE(created_at, 0) DESC, id DESC';
+
+	if (typeof filters?.limit === 'number' && !isNaN(filters.limit) && filters.limit > 0) {
+		sql += ' LIMIT ?';
+		args.push(filters.limit);
+		if (typeof filters?.offset === 'number' && !isNaN(filters.offset) && filters.offset >= 0) {
+			sql += ' OFFSET ?';
+			args.push(filters.offset);
+		}
+	}
 
 	const result = await db.execute({ sql, args });
 
