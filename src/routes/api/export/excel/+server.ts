@@ -9,6 +9,10 @@ export const GET: RequestHandler = async () => {
 			getSettings()
 		]);
 
+		if (transactions.length === 0) {
+			return json({ success: false, error: 'No transactions in ledger to export' }, { status: 400 });
+		}
+
 		const escapeXml = (str: string) => {
 			return str.replace(/[<>&'"]/g, (c) => {
 				switch (c) {
@@ -152,7 +156,8 @@ export const GET: RequestHandler = async () => {
 				'Content-Disposition': `attachment; filename="${filename}"`
 			}
 		});
-	} catch (error: any) {
-		return json({ success: false, error: error.message }, { status: 500 });
+	} catch (error: unknown) {
+		const message = error instanceof Error ? error.message : 'Export failed';
+		return json({ success: false, error: message }, { status: 500 });
 	}
 };

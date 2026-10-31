@@ -13,7 +13,15 @@
 	let spreadsheetId = $state(appState.settings.spreadsheetId || '');
 	let isSavingSpreadsheet = $state(false);
 	let isRestoring = $state(false);
+	type ExportFormat = 'backup' | 'excel' | 'csv';
+	let activeExport = $state<ExportFormat | null>(null);
 	let fileInput = $state<HTMLInputElement | null>(null);
+
+	const EXPORT_CONFIG: Record<ExportFormat, { url: string; ext: string; title: string; checkEmpty?: boolean }> = {
+		backup: { url: '/api/backup', ext: 'json', title: 'Financy Backup' },
+		excel: { url: '/api/export/excel', ext: 'xls', title: 'Excel Ledger', checkEmpty: true },
+		csv: { url: '/api/export/csv', ext: 'csv', title: 'CSV Ledger', checkEmpty: true }
+	};
 
 	$effect(() => {
 		spreadsheetId = appState.settings.spreadsheetId || '';
@@ -23,8 +31,9 @@
 		try {
 			await appState.saveSettings({ currencySymbol: sym });
 			appState.showToast('success', 'Currency Updated', `Prefix set to ${sym}`);
-		} catch (err: any) {
-			appState.showToast('error', 'Update Failed', err.message);
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : 'Update failed';
+			appState.showToast('error', 'Update Failed', message);
 		}
 	}
 
@@ -37,8 +46,9 @@
 		try {
 			await appState.saveSettings({ spreadsheetId: spreadsheetId.trim() });
 			appState.showToast('success', 'Settings Saved', 'Spreadsheet linked');
-		} catch (err: any) {
-			appState.showToast('error', 'Save Failed', err.message);
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : 'Save failed';
+			appState.showToast('error', 'Save Failed', message);
 		} finally {
 			isSavingSpreadsheet = false;
 		}
@@ -60,8 +70,9 @@
 			await appState.addCategory(trimmed);
 			newCategoryName = '';
 			appState.showToast('success', 'Category Added', `"${trimmed}"`);
-		} catch (err: any) {
-			appState.showToast('error', 'Failed', err.message);
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : 'Add failed';
+			appState.showToast('error', 'Failed', message);
 		}
 	}
 
@@ -70,17 +81,50 @@
 		try {
 			await appState.deleteCategory(id);
 			appState.showToast('info', 'Deleted', name);
-		} catch (err: any) {
-			appState.showToast('error', 'Delete Failed', err.message);
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : 'Delete failed';
+			appState.showToast('error', 'Delete Failed', message);
 		}
 	}
 
-	function handleDownloadBackup() {
-		window.open('/api/backup', '_blank');
+	async function downloadFile(url: string, filename: string, title: string) {
+		const res = await fetch(url);
+		if (!res.ok) {
+			const errData = await res.json().catch(() => ({}));
+			throw new Error(errData.error || 'Export request failed');
+		}
+		const blob = await res.blob();
+		const objectUrl = URL.createObjectURL(blob);
+		try {
+			const a = document.createElement('a');
+			a.href = objectUrl;
+			a.download = filename;
+			document.body.appendChild(a);
+			a.click();
+			document.body.removeChild(a);
+		} finally {
+			setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+		}
+		appState.showToast('success', 'Exported', `${title} downloaded`);
 	}
 
-	function handleDownloadExcel() {
-		window.open('/api/export/excel', '_blank');
+	async function handleExport(format: ExportFormat) {
+		const config = EXPORT_CONFIG[format];
+		if (config.checkEmpty && appState.transactions.length === 0) {
+			appState.showToast('info', 'Export Info', 'No transactions in ledger to export');
+			return;
+		}
+
+		activeExport = format;
+		try {
+			const filename = `financy_${format}_${Date.now()}.${config.ext}`;
+			await downloadFile(config.url, filename, config.title);
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : 'Export failed';
+			appState.showToast('error', 'Export Failed', message);
+		} finally {
+			activeExport = null;
+		}
 	}
 
 	async function handleFileRestore(e: Event) {
@@ -107,8 +151,9 @@
 			setTimeout(() => {
 				window.location.reload();
 			}, 1000);
-		} catch (err: any) {
-			appState.showToast('error', 'Restore Failed', err.message);
+		} catch (err: unknown) {
+			const message = err instanceof Error ? err.message : 'Restore failed';
+			appState.showToast('error', 'Restore Failed', message);
 		} finally {
 			isRestoring = false;
 			if (fileInput) fileInput.value = '';
@@ -217,11 +262,12 @@
 
 		<div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-2.5 pt-1">
 			<button
-				onclick={handleDownloadBackup}
-				class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0"
+				onclick={() => handleExport('backup')}
+				disabled={activeExport !== null}
+				class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0 disabled:opacity-50"
 			>
 				<Download class="w-3.5 h-3.5" />
-				<span>Download JSON Backup</span>
+				<span>{activeExport === 'backup' ? 'Exporting...' : 'Download JSON Backup'}</span>
 			</button>
 
 			<label class="cursor-pointer flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0">
@@ -237,11 +283,21 @@
 			</label>
 
 			<button
-				onclick={handleDownloadExcel}
-				class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0"
+				onclick={() => handleExport('excel')}
+				disabled={activeExport !== null}
+				class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0 disabled:opacity-50"
 			>
 				<Download class="w-3.5 h-3.5" />
-				<span>Export Excel (.xls)</span>
+				<span>{activeExport === 'excel' ? 'Exporting...' : 'Export Excel (.xls)'}</span>
+			</button>
+
+			<button
+				onclick={() => handleExport('csv')}
+				disabled={activeExport !== null}
+				class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0 disabled:opacity-50"
+			>
+				<Download class="w-3.5 h-3.5" />
+				<span>{activeExport === 'csv' ? 'Exporting...' : 'Export CSV (.csv)'}</span>
 			</button>
 		</div>
 	</div>
