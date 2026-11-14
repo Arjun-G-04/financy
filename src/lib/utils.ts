@@ -2,12 +2,16 @@ import type { Category } from '#lib/types';
 
 const CATEGORY_RULES: Array<{ target: string; regex: RegExp }> = [
 	{
+		target: 'Rent & Related',
+		regex: /\b(?:rents?|rental)\b/i
+	},
+	{
 		target: 'Transport',
 		regex: /\b(?:uber|petrol|rapido|auto|metro|ola|fuel|taxi)\b/i
 	},
 	{
 		target: 'Food',
-		regex: /\b(?:lunch|dinner|breakfast|food|swiggy|zomato|cafe|coffee|tea|restaurant|snacks|mess|grocery|zepto|blinkit|instamart)\b/i
+		regex: /\b(?:lunch|dinner|breakfast|food|swiggy|zomato|cafe|coffee|tea|restaurant|snacks?|snacking|mess|grocery|zepto|blinkit|instamart)\b/i
 	}
 ];
 
@@ -16,12 +20,35 @@ export function formatCurrency(val: number, symbol = '₹'): string {
 	return `${symbol}${safeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-export function suggestCategory(text: string, categories: Category[]): string | null {
-	if (!text) return null;
-	for (const rule of CATEGORY_RULES) {
-		if (rule.regex.test(text)) {
-			const matched = categories.find((c) => c.name.toLowerCase() === rule.target.toLowerCase());
-			return matched ? matched.name : rule.target;
+function normalizeCategoryName(name: string): string {
+	return name.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]/g, '');
+}
+
+function resolveCategoryName(target: string, categories: Category[]): string {
+	if (!categories || categories.length === 0) return target;
+	const normTarget = normalizeCategoryName(target);
+	const match =
+		categories.find((c) => normalizeCategoryName(c.name) === normTarget) ||
+		categories.find((c) => {
+			const normC = normalizeCategoryName(c.name);
+			return normTarget.startsWith(normC) || normC.startsWith(normTarget);
+		});
+	return match ? match.name : target;
+}
+
+export function suggestCategory(
+	input: string | (string | null | undefined)[],
+	categories: Category[]
+): string | null {
+	const candidates = (Array.isArray(input) ? input : [input]).filter(
+		(s): s is string => typeof s === 'string' && s.trim().length > 0
+	);
+
+	for (const text of candidates) {
+		for (const rule of CATEGORY_RULES) {
+			if (rule.regex.test(text)) {
+				return resolveCategoryName(rule.target, categories);
+			}
 		}
 	}
 	return null;

@@ -14,9 +14,8 @@
 	const isReviewMode = $derived(Boolean(appState.sheetReviewContext));
 	const reviewTx = $derived(appState.sheetReviewContext?.transaction);
 
-	function handleNameChange(newName: string) {
-		name = newName;
-		const autoCat = suggestCategory(newName, appState.categories);
+	function handleNameChange() {
+		const autoCat = suggestCategory(name, appState.categories);
 		if (autoCat) {
 			category = autoCat;
 		}
@@ -29,7 +28,7 @@
 			type = tx.type;
 			amount = String(tx.amount);
 			name = tx.merchant || '';
-			const autoCat = suggestCategory(`${tx.merchant} ${tx.raw || ''}`, appState.categories);
+			const autoCat = suggestCategory([tx.merchant, tx.raw], appState.categories);
 			category = autoCat || '';
 		} else if (appState.editingTransaction) {
 			const tx = appState.editingTransaction;
@@ -206,8 +205,8 @@
 						id="modal-name"
 						type="text"
 						placeholder="Merchant / Note"
-						value={name}
-						oninput={(e) => handleNameChange((e.target as HTMLInputElement).value)}
+						bind:value={name}
+						oninput={handleNameChange}
 						required
 						class="w-full px-3 py-2.5 sm:py-2 bg-[#111110] border border-stone-800 rounded-xl text-stone-200 text-base sm:text-xs focus:outline-none focus:border-stone-600 transition-colors"
 					/>
