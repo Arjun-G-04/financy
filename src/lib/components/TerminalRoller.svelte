@@ -29,7 +29,7 @@
 	];
 
 	let isRolling = $state(false);
-	let lastTriggerKey = $state<number | null>(null);
+	let lastTriggerKey: number | null = null;
 
 	$effect(() => {
 		const currentKey = triggerKey;

@@ -36,11 +36,11 @@
 		}
 	});
 
-	const parsedInitial = $derived(parseFloat(formInitial));
-	const parsedFinal = $derived(parseFloat(formFinal));
+	const parsedInitial = $derived(parseFloat(String(formInitial)));
+	const parsedFinal = $derived(parseFloat(String(formFinal)));
 	const isCalculable = $derived(
-		formInitial.trim() !== '' &&
-			formFinal.trim() !== '' &&
+		String(formInitial).trim() !== '' &&
+			String(formFinal).trim() !== '' &&
 			!isNaN(parsedInitial) &&
 			!isNaN(parsedFinal)
 	);
