@@ -6,7 +6,8 @@
 		Upload,
 		Trash2,
 		Plus,
-		Check
+		Check,
+		Settings
 	} from '@lucide/svelte';
 
 	let newCategoryName = $state('');
@@ -161,88 +162,111 @@
 	}
 </script>
 
-<div class="space-y-5 sm:space-y-6">
-	<!-- Page Header -->
-	<div class="border-b border-stone-800/80 pb-4">
-		<div class="text-[10px] sm:text-[11px] font-medium tracking-wider text-stone-500 uppercase">System</div>
-		<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea] mt-0.5">Configuration & Storage</h1>
-	</div>
-
-	<!-- Currency Configuration Card -->
-	<div class="p-4 sm:p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
-		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Primary Currency</div>
-		<p class="text-xs text-stone-500">Select base denomination symbol for ledger math.</p>
-
-		<div class="flex items-center gap-2 max-w-xs w-full">
-			<button
-				onclick={() => handleSaveCurrency('₹')}
-				class="flex-1 py-2 sm:py-1.5 rounded-lg border text-xs font-mono tabular-nums transition-all min-h-[40px] sm:min-h-0 flex items-center justify-center {appState.settings.currencySymbol === '₹'
-					? 'bg-[#22211e] text-[#f5f2ea] border-stone-700 shadow-sm font-semibold'
-					: 'bg-[#111110] text-stone-400 border-stone-800 hover:text-stone-200'}"
-			>
-				INR (₹)
-			</button>
-			<button
-				onclick={() => handleSaveCurrency('$')}
-				class="flex-1 py-2 sm:py-1.5 rounded-lg border text-xs font-mono tabular-nums transition-all min-h-[40px] sm:min-h-0 flex items-center justify-center {appState.settings.currencySymbol === '$'
-					? 'bg-[#22211e] text-[#f5f2ea] border-stone-700 shadow-sm font-semibold'
-					: 'bg-[#111110] text-stone-400 border-stone-800 hover:text-stone-200'}"
-			>
-				USD ($)
-			</button>
+<div class="space-y-4 sm:space-y-5">
+	<!-- Top Section: Physical Instrument Faceplate -->
+	<section class="hw-chassis rounded-2xl p-4 sm:p-6 lg:p-7 relative shadow-2xl space-y-4 sm:space-y-5">
+		<!-- Faceplate Header -->
+		<div class="flex items-center justify-between border-b border-[#292924] pb-4 px-1 sm:px-2">
+			<div class="flex items-center gap-2.5 sm:gap-3">
+				<Settings class="w-6 h-6 sm:w-7 sm:h-7 text-[#82b896] stroke-[2.2]" />
+				<span class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+					SYSTEM CONFIGURATION & STORAGE
+				</span>
+			</div>
 		</div>
-	</div>
+
+		<!-- Currency Configuration -->
+		<div class="space-y-3 pt-1">
+			<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-300">
+				PRIMARY CURRENCY PREFIX
+			</div>
+			<p class="text-xs font-mono text-stone-500">
+				Base denomination symbol applied across ledger mathematical telemetry.
+			</p>
+
+			<div class="flex items-center gap-1.5 max-w-xs w-full bg-[#0c0c0a] p-1 rounded-xl border border-[#262622]">
+				<button
+					type="button"
+					onclick={() => handleSaveCurrency('₹')}
+					class="flex-1 py-2 sm:py-1.5 rounded-lg text-xs font-mono tabular-nums transition-all min-h-[40px] sm:min-h-0 flex items-center justify-center cursor-pointer {appState.settings.currencySymbol === '₹'
+						? 'bg-[#22221e] text-[#f5f2ea] border border-[#3d3d36] font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.06)]'
+						: 'text-stone-400 hover:text-stone-200 hover:bg-[#181815]'}"
+				>
+					INR (₹)
+				</button>
+				<button
+					type="button"
+					onclick={() => handleSaveCurrency('$')}
+					class="flex-1 py-2 sm:py-1.5 rounded-lg text-xs font-mono tabular-nums transition-all min-h-[40px] sm:min-h-0 flex items-center justify-center cursor-pointer {appState.settings.currencySymbol === '$'
+						? 'bg-[#22221e] text-[#f5f2ea] border border-[#3d3d36] font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.06)]'
+						: 'text-stone-400 hover:text-stone-200 hover:bg-[#181815]'}"
+				>
+					USD ($)
+				</button>
+			</div>
+		</div>
+	</section>
 
 	<!-- Google Spreadsheet ID Card -->
-	<div class="p-4 sm:p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
-		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Google Spreadsheet Integration</div>
-		<p class="text-xs text-stone-500">Linked Google Sheet ID for bidirectional transaction sync.</p>
+	<section class="hw-chassis p-5 sm:p-6 rounded-2xl border border-[#292924] space-y-3.5 shadow-xl">
+		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+			GOOGLE SPREADSHEET INTEGRATION
+		</div>
+		<p class="text-xs font-mono text-stone-500">
+			Linked Google Sheet document ID for bidirectional operational sync.
+		</p>
 
-		<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-2xl">
+		<div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 max-w-2xl pt-1">
 			<input
 				type="text"
 				placeholder="1LYv2aGTfpGBhfAK..."
 				bind:value={spreadsheetId}
-				class="flex-1 px-3 py-2.5 sm:py-1.5 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-base sm:text-xs font-mono focus:outline-none focus:border-stone-600 transition-colors"
+				class="flex-1 px-3.5 py-2.5 sm:py-2 bg-[#10100d] border border-[#292924] rounded-lg text-stone-200 text-base sm:text-xs font-mono focus:outline-none focus:border-[#c9b48b] shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)] transition-colors"
 			/>
 			<button
+				type="button"
 				onclick={handleSaveSpreadsheet}
 				disabled={isSavingSpreadsheet}
-				class="px-4 py-2.5 sm:py-1.5 rounded-lg bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all disabled:opacity-50 min-h-[40px] sm:min-h-0 shadow-sm"
+				class="hw-keycap-primary px-5 py-2.5 sm:py-2 text-xs font-mono font-bold tracking-wider cursor-pointer shadow-md disabled:opacity-50 min-h-[42px] sm:min-h-[38px] flex items-center justify-center"
 			>
-				{isSavingSpreadsheet ? 'Saving...' : 'Link Sheet'}
+				{isSavingSpreadsheet ? 'SAVING...' : 'LINK SPREADSHEET'}
 			</button>
 		</div>
-	</div>
+	</section>
 
 	<!-- Category Management Card -->
-	<div class="p-4 sm:p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
-		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Ledger Categories</div>
-		<p class="text-xs text-stone-500">Taxonomy for operational debits and credits.</p>
+	<section class="hw-chassis p-5 sm:p-6 rounded-2xl border border-[#292924] space-y-4 shadow-xl">
+		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+			LEDGER TAXONOMY & CATEGORIES
+		</div>
+		<p class="text-xs font-mono text-stone-500">
+			Account classifications for debits, credits, and capital allocation.
+		</p>
 
-		<form onsubmit={handleAddCategory} class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 max-w-sm">
+		<form onsubmit={handleAddCategory} class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 max-w-md pt-1">
 			<input
 				type="text"
-				placeholder="New category..."
+				placeholder="New category label..."
 				bind:value={newCategoryName}
-				class="flex-1 px-3 py-2.5 sm:py-1.5 bg-[#111110] border border-stone-800 rounded-lg text-stone-200 text-base sm:text-xs focus:outline-none focus:border-stone-600 transition-colors"
+				class="flex-1 px-3.5 py-2.5 sm:py-2 bg-[#10100d] border border-[#292924] rounded-lg text-stone-200 text-base sm:text-xs font-mono focus:outline-none focus:border-[#c9b48b] shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)] transition-colors"
 			/>
 			<button
 				type="submit"
-				class="px-4 py-2.5 sm:py-1.5 rounded-lg bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all min-h-[40px] sm:min-h-0 shadow-sm flex items-center justify-center"
+				class="hw-keycap-primary px-5 py-2.5 sm:py-2 text-xs font-mono font-bold tracking-wider cursor-pointer shadow-md min-h-[42px] sm:min-h-[38px] flex items-center justify-center shrink-0"
 			>
-				Add Category
+				ADD CATEGORY
 			</button>
 		</form>
 
-		<div class="flex flex-wrap gap-1.5 pt-1">
+		<div class="flex flex-wrap gap-2 pt-1">
 			{#each appState.categories as cat (cat.id)}
-				<div class="inline-flex items-center gap-2 px-3 py-1.5 sm:px-2.5 sm:py-1 rounded-lg bg-[#111110] border border-stone-800 text-xs text-stone-300 min-h-[32px] sm:min-h-0">
+				<div class="hw-keycap inline-flex items-center gap-2.5 px-3 py-1.5 rounded-lg text-xs font-mono text-stone-200 min-h-[36px] sm:min-h-0 shadow-xs">
 					<span class="w-2 h-2 rounded-full shrink-0" style="background-color: {getCategoryColor(cat.name)};"></span>
-					<span>{cat.name}</span>
+					<span class="font-bold">{cat.name}</span>
 					<button
+						type="button"
 						onclick={() => handleDeleteCategory(cat.id, cat.name)}
-						class="text-stone-500 hover:text-rose-400 transition-colors p-1"
+						class="text-stone-500 hover:text-[#e06c75] transition-colors p-1 cursor-pointer"
 						title="Delete"
 						aria-label="Delete {cat.name}"
 					>
@@ -251,28 +275,31 @@
 				</div>
 			{/each}
 		</div>
-	</div>
+	</section>
 
 	<!-- Database Backup & Migration Card -->
-	<div class="p-4 sm:p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
-		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Database Storage & Exports</div>
-		<p class="text-xs text-stone-500">
-			Encrypted Turso libSQL records can be dumped or restored as JSON.
+	<section class="hw-chassis p-5 sm:p-6 rounded-2xl border border-[#292924] space-y-4 shadow-xl">
+		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+			TURSO DATABASE STORAGE & EXPORTS
+		</div>
+		<p class="text-xs font-mono text-stone-500">
+			Sovereign Turso libSQL records can be dumped or restored as encrypted snapshots.
 		</p>
 
-		<div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 sm:gap-2.5 pt-1">
+		<div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2.5 pt-1">
 			<button
+				type="button"
 				onclick={() => handleExport('backup')}
 				disabled={activeExport !== null}
-				class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0 disabled:opacity-50"
+				class="hw-keycap flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-mono text-stone-200 cursor-pointer shadow-sm min-h-[42px] sm:min-h-[38px] disabled:opacity-50"
 			>
-				<Download class="w-3.5 h-3.5" />
-				<span>{activeExport === 'backup' ? 'Exporting...' : 'Download JSON Backup'}</span>
+				<Download class="w-3.5 h-3.5 text-[#f97316]" />
+				<span>{activeExport === 'backup' ? 'EXPORTING...' : 'DOWNLOAD JSON BACKUP'}</span>
 			</button>
 
-			<label class="cursor-pointer flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0">
-				<Upload class="w-3.5 h-3.5" />
-				<span>{isRestoring ? 'Restoring...' : 'Restore JSON Backup'}</span>
+			<label class="hw-keycap cursor-pointer flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-mono text-stone-200 shadow-sm min-h-[42px] sm:min-h-[38px]">
+				<Upload class="w-3.5 h-3.5 text-[#82b896]" />
+				<span>{isRestoring ? 'RESTORING...' : 'RESTORE JSON BACKUP'}</span>
 				<input
 					type="file"
 					accept=".json"
@@ -283,40 +310,44 @@
 			</label>
 
 			<button
+				type="button"
 				onclick={() => handleExport('excel')}
 				disabled={activeExport !== null}
-				class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0 disabled:opacity-50"
+				class="hw-keycap flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-mono text-stone-200 cursor-pointer shadow-sm min-h-[42px] sm:min-h-[38px] disabled:opacity-50"
 			>
-				<Download class="w-3.5 h-3.5" />
-				<span>{activeExport === 'excel' ? 'Exporting...' : 'Export Excel (.xls)'}</span>
+				<Download class="w-3.5 h-3.5 text-stone-400" />
+				<span>{activeExport === 'excel' ? 'EXPORTING...' : 'EXPORT EXCEL (.XLS)'}</span>
 			</button>
 
 			<button
+				type="button"
 				onclick={() => handleExport('csv')}
 				disabled={activeExport !== null}
-				class="flex items-center justify-center gap-1.5 px-3.5 py-2.5 sm:py-1.5 rounded-lg bg-[#1f1e1b] hover:bg-[#252420] text-stone-200 border border-stone-700/80 text-xs transition-colors min-h-[40px] sm:min-h-0 disabled:opacity-50"
+				class="hw-keycap flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-xs font-mono text-stone-200 cursor-pointer shadow-sm min-h-[42px] sm:min-h-[38px] disabled:opacity-50"
 			>
-				<Download class="w-3.5 h-3.5" />
-				<span>{activeExport === 'csv' ? 'Exporting...' : 'Export CSV (.csv)'}</span>
+				<Download class="w-3.5 h-3.5 text-stone-400" />
+				<span>{activeExport === 'csv' ? 'EXPORTING...' : 'EXPORT CSV (.CSV)'}</span>
 			</button>
 		</div>
-	</div>
+	</section>
 
 	<!-- User Session Card -->
-	<div class="p-4 sm:p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
-		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Authenticated Account</div>
-		<div class="flex items-center justify-between gap-3">
+	<section class="hw-chassis p-5 sm:p-6 rounded-2xl border border-[#292924] space-y-3.5 shadow-xl">
+		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+			AUTHENTICATED OPERATOR SESSION
+		</div>
+		<div class="flex items-center justify-between gap-4 pt-1">
 			<div class="min-w-0">
-				<div class="text-sm font-medium text-stone-200 truncate">{appState.user?.name || 'Authorized Account'}</div>
+				<div class="text-sm font-mono font-bold text-stone-200 truncate">{appState.user?.name || 'Authorized Account'}</div>
 				<div class="text-xs text-stone-500 font-mono truncate">{appState.user?.email || 'Protected Session'}</div>
 			</div>
 
 			<a
 				href="/auth/logout"
-				class="px-3.5 py-2 sm:py-1.5 rounded-lg bg-[#22211e] hover:bg-rose-950/40 text-stone-300 hover:text-rose-300 border border-stone-800 hover:border-rose-800/50 text-xs transition-colors min-h-[38px] sm:min-h-0 flex items-center shrink-0"
+				class="hw-keycap px-4 py-2 rounded-lg text-stone-400 hover:text-rose-400 hover:border-rose-900/50 font-mono text-xs transition-colors min-h-[40px] sm:min-h-0 flex items-center shrink-0 cursor-pointer shadow-sm"
 			>
-				Sign Out
+				SIGN OUT
 			</a>
 		</div>
-	</div>
+	</section>
 </div>

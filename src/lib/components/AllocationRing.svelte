@@ -37,9 +37,9 @@
 	});
 </script>
 
-<div class="p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
-	<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">
-		Expense Allocation
+<div class="hw-chassis p-5 sm:p-6 rounded-2xl border border-[#292924] space-y-4 shadow-xl">
+	<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+		EXPENSE ALLOCATION RING
 	</div>
 
 	{#if categories.length === 0}

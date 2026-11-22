@@ -5,7 +5,8 @@
 	import {
 		RefreshCw,
 		Check,
-		Pencil
+		Pencil,
+		FileSpreadsheet
 	} from '@lucide/svelte';
 
 	import type { SheetRowItem } from '#lib/types';
@@ -93,50 +94,57 @@
 	}
 </script>
 
-<div class="space-y-3.5 sm:space-y-4">
-	<!-- Page Header -->
-	<div class="border-b border-stone-800/80 pb-3">
-		<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea]">Google Sheets Import</h1>
-	</div>
+<div class="space-y-4 sm:space-y-5">
+	<!-- Top Section: Physical Instrument Faceplate -->
+	<section class="hw-chassis rounded-2xl p-4 sm:p-6 lg:p-7 relative shadow-2xl space-y-4 sm:space-y-5">
+		<!-- Faceplate Header -->
+		<div class="flex items-center justify-between border-b border-[#292924] pb-4 px-1 sm:px-2">
+			<div class="flex items-center gap-2.5 sm:gap-3">
+				<FileSpreadsheet class="w-6 h-6 sm:w-7 sm:h-7 text-[#82b896] stroke-[2.2]" />
+				<span class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+					GOOGLE SHEETS DISPATCH & SYNC
+				</span>
+			</div>
+		</div>
 
-	<!-- Controls Card -->
-	<div class="p-4 sm:p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
 		<!-- Date Range Filters & Presets -->
-		<DateRangeFilter
-			bind:startDate={appState.sheetsSync.startDate}
-			bind:endDate={appState.sheetsSync.endDate}
-			presets={['7days', 'month', '30days']}
-			title="Query Window"
-		/>
+		<div class="pt-1">
+			<DateRangeFilter
+				bind:startDate={appState.sheetsSync.startDate}
+				bind:endDate={appState.sheetsSync.endDate}
+				presets={['7days', 'month', '30days']}
+				title="Query Window"
+			/>
+		</div>
 
 		<!-- Action Trigger -->
-		<div class="pt-3 border-t border-stone-800/60 flex items-center justify-end">
+		<div class="pt-3 border-t border-[#292924] flex items-center justify-end">
 			<button
 				type="button"
 				onclick={handleFetch}
 				disabled={appState.sheetsSync.isLoading}
-				class="w-full sm:w-auto flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-2 rounded-xl bg-[#eeebe3] active:scale-95 hover:bg-white text-[#111110] text-xs font-semibold transition-all shadow-sm disabled:opacity-50 min-h-[40px] sm:min-h-[36px]"
+				class="hw-keycap-primary w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 text-xs font-mono font-bold tracking-wider cursor-pointer shadow-md disabled:opacity-50 min-h-[42px] sm:min-h-[38px]"
 			>
-				<RefreshCw class="w-3.5 h-3.5 {appState.sheetsSync.isLoading ? 'animate-spin' : ''}" />
-				<span>{appState.sheetsSync.isLoading ? 'Querying Google Sheets...' : 'Fetch Sheet Rows'}</span>
+				<RefreshCw class="w-3.5 h-3.5 stroke-[2.5] {appState.sheetsSync.isLoading ? 'animate-spin' : ''}" />
+				<span>{appState.sheetsSync.isLoading ? 'QUERYING SPREADSHEET...' : 'FETCH SHEET ROWS'}</span>
 			</button>
 		</div>
-	</div>
+	</section>
 
 	<!-- Fetched Results -->
 	{#if appState.sheetsSync.result}
-		<div class="p-4 sm:p-5 rounded-2xl bg-[#171715] border border-stone-800/80 space-y-4 shadow-sm">
+		<section class="hw-chassis rounded-2xl p-4 sm:p-6 border border-[#292924] space-y-4 shadow-xl">
 			<!-- Table Header -->
-			<div class="border-b border-stone-800/80 pb-4">
-				<div class="text-sm font-semibold text-[#f5f2ea] flex items-center gap-2 flex-wrap">
+			<div class="border-b border-[#292924] pb-4">
+				<div class="text-sm font-semibold text-[#f5f2ea] flex items-center gap-2 flex-wrap font-mono">
 					<span>{appState.sheetsSync.result.title}</span>
 					{#if appState.sheetsSync.result.sheetTitle}
-						<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-[#111110] text-stone-400 border border-stone-800">
-							Tab: {appState.sheetsSync.result.sheetTitle}
+						<span class="hw-metal-plate px-2.5 py-0.5 rounded-xs text-[10px] uppercase font-bold tracking-wider">
+							TAB: {appState.sheetsSync.result.sheetTitle}
 						</span>
 					{/if}
 				</div>
-				<div class="text-xs text-stone-500 font-mono mt-0.5">
+				<div class="text-xs text-stone-500 font-mono mt-1">
 					{appState.sheetsSync.result.transactions.length} rows scanned •
 					<span class="text-[#82b896] font-semibold">{newTransactions.length} uncommitted</span> •
 					<span class="text-stone-500">{appState.sheetsSync.result.transactions.length - newTransactions.length} in ledger</span>
@@ -150,20 +158,20 @@
 				</div>
 			{:else}
 				<!-- Mobile Feed: Card List (sm:hidden) -->
-				<div class="sm:hidden divide-y divide-stone-800/60 -mx-1">
+				<div class="sm:hidden divide-y divide-[#242420] -mx-1">
 					{#each appState.sheetsSync.result.transactions as tx (tx.id)}
 						{#if tx.alreadyImported}
 							<div class="p-3.5 flex flex-col gap-2 opacity-55">
 								<div class="flex items-center justify-between gap-2">
 									<div class="flex items-center gap-2">
-										<span class="inline-flex items-center gap-1 text-[9px] font-mono text-stone-500 px-1.5 py-0.5 rounded bg-[#111110] border border-stone-800">
+										<span class="inline-flex items-center gap-1 text-[9px] font-mono text-stone-400 px-2 py-0.5 rounded bg-[#10100d] border border-[#262622]">
 											<Check class="w-2.5 h-2.5 text-[#82b896]" />
 											<span>IN LEDGER</span>
 										</span>
 										<span class="text-stone-400 font-mono text-[11px] tabular-nums">{tx.date}</span>
 									</div>
 
-									<span class="font-mono tabular-nums text-xs font-semibold shrink-0 {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+									<span class="font-mono tabular-nums text-xs font-bold shrink-0 {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
 										{formatAmount(tx.amount)}
 									</span>
 								</div>
@@ -178,13 +186,13 @@
 							>
 								<div class="flex items-center justify-between gap-2 w-full">
 									<div class="flex items-center gap-2">
-										<span class="inline-flex items-center gap-1 text-[9px] font-mono text-[#82b896] px-1.5 py-0.5 rounded bg-[#82b896]/10 border border-[#82b896]/20 font-semibold">
+										<span class="inline-flex items-center gap-1 text-[9px] font-mono text-[#82b896] px-2 py-0.5 rounded bg-[#82b896]/10 border border-[#82b896]/30 font-bold">
 											<span>NEW</span>
 										</span>
 										<span class="text-stone-400 font-mono text-[11px] tabular-nums">{tx.date}</span>
 									</div>
 
-									<span class="font-mono tabular-nums text-xs font-semibold shrink-0 {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+									<span class="font-mono tabular-nums text-xs font-bold shrink-0 {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
 										{formatAmount(tx.amount)}
 									</span>
 								</div>
@@ -194,8 +202,8 @@
 										{tx.merchant}
 									</div>
 
-									<span class="px-2.5 py-1.5 rounded-lg bg-[#232320] text-stone-200 text-xs font-mono border border-stone-700/60 inline-flex items-center gap-1 shrink-0">
-										<Pencil class="w-3 h-3" />
+									<span class="hw-keycap px-2.5 py-1.5 rounded-lg text-stone-200 text-xs font-mono inline-flex items-center gap-1.5 shrink-0 shadow-xs">
+										<Pencil class="w-3 h-3 text-[#f97316]" />
 										<span>Edit & Import</span>
 									</span>
 								</div>
@@ -205,56 +213,56 @@
 				</div>
 
 				<!-- Tablet & Desktop Table (hidden sm:block) -->
-				<div class="hidden sm:block border border-stone-800/80 rounded-xl overflow-x-auto">
+				<div class="hidden sm:block border border-[#292924] rounded-xl overflow-x-auto bg-[#0d0d0b]">
 					<table class="w-full text-left text-xs">
-						<thead class="bg-[#141412] border-b border-stone-800 text-[10px] font-semibold text-stone-500 uppercase tracking-wider">
+						<thead class="bg-[#141411] border-b border-[#292924] text-[10px] font-mono font-bold text-stone-400 uppercase tracking-wider">
 							<tr>
-								<th class="px-3.5 py-2.5">Status</th>
-								<th class="px-3.5 py-2.5">Date</th>
-								<th class="px-3.5 py-2.5">Description</th>
-								<th class="px-3.5 py-2.5 text-right">Amount</th>
-								<th class="px-3.5 py-2.5 text-right">Action</th>
+								<th class="px-4 py-3">Status</th>
+								<th class="px-4 py-3">Date</th>
+								<th class="px-4 py-3">Description</th>
+								<th class="px-4 py-3 text-right">Amount</th>
+								<th class="px-4 py-3 text-right">Action</th>
 							</tr>
 						</thead>
-						<tbody class="divide-y divide-stone-800/60">
+						<tbody class="divide-y divide-[#242420]">
 							{#each appState.sheetsSync.result.transactions as tx (tx.id)}
 								<tr
 									onclick={() => handleOpenImportModal(tx)}
-									class="hover:bg-[#1a1917] transition-colors {tx.alreadyImported
+									class="hover:bg-[#181815] transition-colors {tx.alreadyImported
 										? 'opacity-55'
 										: 'cursor-pointer'}"
 								>
 									<!-- Status Badge -->
-									<td class="px-3.5 py-2.5 whitespace-nowrap">
+									<td class="px-4 py-3 whitespace-nowrap">
 										{#if tx.alreadyImported}
-											<span class="inline-flex items-center gap-1 text-[10px] font-mono text-stone-500 px-2 py-0.5 rounded bg-[#111110] border border-stone-800">
+											<span class="inline-flex items-center gap-1 text-[10px] font-mono text-stone-400 px-2 py-0.5 rounded bg-[#10100d] border border-[#262622]">
 												<Check class="w-2.5 h-2.5 text-[#82b896]" />
 												<span>IN LEDGER</span>
 											</span>
 										{:else}
-											<span class="inline-flex items-center gap-1 text-[10px] font-mono text-[#82b896] px-2 py-0.5 rounded bg-[#82b896]/10 border border-[#82b896]/20 font-semibold">
+											<span class="inline-flex items-center gap-1 text-[10px] font-mono text-[#82b896] px-2 py-0.5 rounded bg-[#82b896]/10 border border-[#82b896]/30 font-bold">
 												<span>NEW</span>
 											</span>
 										{/if}
 									</td>
 
 									<!-- Date -->
-									<td class="px-3.5 py-2.5 whitespace-nowrap text-stone-400 font-mono tabular-nums">
+									<td class="px-4 py-3 whitespace-nowrap text-stone-400 font-mono tabular-nums">
 										{tx.date}
 									</td>
 
 									<!-- Description -->
-									<td class="px-3.5 py-2.5 text-stone-200">
+									<td class="px-4 py-3 text-stone-200">
 										<div class="font-medium">{tx.merchant}</div>
 									</td>
 
 									<!-- Amount -->
-									<td class="px-3.5 py-2.5 whitespace-nowrap text-right font-mono tabular-nums font-semibold {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
+									<td class="px-4 py-3 whitespace-nowrap text-right font-mono tabular-nums font-bold {tx.type === 'credit' ? 'text-[#82b896]' : 'text-[#e06c75]'}">
 										{formatAmount(tx.amount)}
 									</td>
 
 									<!-- Action -->
-									<td class="px-3.5 py-2.5 whitespace-nowrap text-right">
+									<td class="px-4 py-3 whitespace-nowrap text-right">
 										{#if tx.alreadyImported}
 											<span class="text-[11px] text-stone-500 font-mono">Synced</span>
 										{:else}
@@ -264,9 +272,9 @@
 													e.stopPropagation();
 													handleOpenImportModal(tx);
 												}}
-												class="px-2.5 py-1 rounded-md bg-[#232320] hover:bg-[#eeebe3] hover:text-[#111110] text-stone-200 text-[11px] font-mono transition-colors border border-stone-700/60 inline-flex items-center gap-1"
+												class="hw-keycap px-3 py-1.5 rounded-lg text-stone-200 text-xs font-mono inline-flex items-center gap-1.5 cursor-pointer shadow-xs"
 											>
-												<Pencil class="w-3 h-3" />
+												<Pencil class="w-3 h-3 text-[#f97316]" />
 												<span>Edit & Import</span>
 											</button>
 										{/if}
@@ -277,6 +285,6 @@
 					</table>
 				</div>
 			{/if}
-		</div>
+		</section>
 	{/if}
 </div>

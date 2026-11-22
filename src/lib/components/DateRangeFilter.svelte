@@ -54,20 +54,20 @@
 
 <div class="space-y-3">
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
+		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-300 flex items-center gap-1.5">
 			<Calendar class="w-3.5 h-3.5 text-stone-500" />
 			<span>{title}</span>
 		</div>
 
-		<!-- Quick Presets Buttons -->
-		<div class="grid grid-cols-2 xs:grid-cols-4 sm:flex items-center gap-1.5 w-full sm:w-auto">
+		<!-- Quick Presets Buttons: Recessed Tray with Keycaps -->
+		<div class="grid grid-cols-2 xs:grid-cols-4 sm:flex items-center gap-1.5 w-full sm:w-auto p-1 bg-[#0c0c0a] border border-[#262622] rounded-xl">
 			{#each presets as preset}
 				<button
 					type="button"
 					onclick={() => setPreset(preset)}
-					class="px-2.5 py-1.5 sm:py-1 rounded-lg sm:rounded-md text-[11px] font-mono transition-colors text-center min-h-[34px] sm:min-h-0 {activePreset === preset
-						? 'bg-[#1c1c19] text-[#f5f2ea] border border-stone-600 shadow-sm font-medium'
-						: 'bg-[#111110] hover:bg-[#232320] border border-stone-800 text-stone-400 hover:text-stone-200'}"
+					class="px-2.5 py-1.5 sm:py-1 rounded-lg text-[11px] font-mono transition-all text-center min-h-[34px] sm:min-h-0 cursor-pointer {activePreset === preset
+						? 'bg-[#22221e] text-[#f5f2ea] border border-[#3d3d36] font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.06)]'
+						: 'text-stone-400 hover:text-stone-200 hover:bg-[#181815]'}"
 				>
 					{presetLabels[preset]}
 				</button>

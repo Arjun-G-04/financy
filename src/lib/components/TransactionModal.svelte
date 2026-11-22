@@ -106,31 +106,31 @@
 		class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-150"
 	>
 		<div
-			class="relative w-full max-w-md bg-[#171715] border-t sm:border border-stone-800 rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-5 space-y-4 max-h-[90vh] sm:max-h-[90vh] overflow-y-auto"
+			class="relative w-full max-w-md hw-chassis rounded-t-2xl sm:rounded-2xl shadow-2xl p-5 pb-[calc(1.25rem+env(safe-area-inset-bottom,0px))] sm:pb-5 space-y-4 max-h-[90vh] sm:max-h-[90vh] overflow-y-auto"
 		>
 			<!-- Mobile Drag Handle -->
 			<div class="w-10 h-1 rounded-full bg-stone-700/80 mx-auto sm:hidden -mt-1 mb-2"></div>
 
 			<!-- Header -->
-			<div class="flex items-center justify-between pb-3 border-b border-stone-800">
+			<div class="flex items-center justify-between pb-3 border-b border-[#2b2b25]">
 				<div>
 					{#if isReviewMode}
 						<div class="text-[10px] font-mono uppercase tracking-wider text-stone-500">
 							Sheet Import Review
 						</div>
-						<h3 class="text-sm font-semibold tracking-tight text-[#f5f2ea] mt-0.5">
+						<h3 class="text-sm font-semibold tracking-tight text-[#f5f2ea] mt-0.5 font-mono">
 							Customize & Commit to Ledger
 						</h3>
 					{:else}
-						<h3 class="text-sm font-semibold tracking-tight text-[#f5f2ea]">
-							{appState.editingTransaction ? 'Edit Record' : 'New Record'}
+						<h3 class="text-sm font-bold tracking-tight text-[#f5f2ea] font-mono">
+							{appState.editingTransaction ? 'EDIT' : 'NEW RECORD'}
 						</h3>
 					{/if}
 				</div>
 				<button
 					type="button"
 					onclick={() => appState.closeTransactionModal()}
-					class="text-stone-500 hover:text-stone-300 p-2 sm:p-1.5 rounded-lg hover:bg-[#232320] transition-colors min-h-[36px] min-w-[36px] flex items-center justify-center"
+					class="hw-keycap text-stone-400 hover:text-stone-200 p-2 sm:p-1.5 rounded-lg cursor-pointer min-h-[36px] min-w-[36px] flex items-center justify-center"
 					aria-label="Close"
 				>
 					<X class="w-4 h-4" />
@@ -169,29 +169,43 @@
 
 			<!-- Form -->
 			<form onsubmit={handleSubmit} class="space-y-3.5 text-xs">
-				<!-- Direction Switcher -->
+				<!-- Direction Switcher (Physical Sliding Selector Toggle) -->
 				<div>
-					<span class="block text-[11px] text-stone-400 mb-1 font-mono uppercase tracking-wider">Direction</span>
-					<div class="grid grid-cols-2 gap-1.5 p-1 bg-[#111110] rounded-xl border border-stone-800">
+					<span class="block text-[11px] text-stone-400 mb-1.5 font-mono uppercase tracking-wider">Direction</span>
+					<div class="relative grid grid-cols-2 p-1 bg-[#0b0b09] rounded-xl border border-[#262622] shadow-[inset_0_2px_4px_rgba(0,0,0,0.85)] select-none">
+						<!-- Mechanical Sliding Thumb Shuttle -->
+						<div
+							class="absolute top-1 bottom-1 w-[calc(50%-4px)] left-1 rounded-lg pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)] {type === 'credit'
+								? 'translate-x-full bg-gradient-to-b from-[#1c2a20] to-[#111a14] border border-[#295236] shadow-[0_3px_8px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.15),0_0_12px_rgba(130,184,150,0.25)]'
+								: 'translate-x-0 bg-gradient-to-b from-[#2a1c1d] to-[#1a1112] border border-[#52292f] shadow-[0_3px_8px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.15),0_0_12px_rgba(224,108,117,0.25)]'}"
+						>
+							<!-- Machined Grip Knurl Ridges -->
+							<div class="absolute inset-y-2 left-1/2 -translate-x-1/2 w-2.5 flex justify-between items-center opacity-25">
+								<span class="w-[1px] h-full bg-white"></span>
+								<span class="w-[1px] h-full bg-white"></span>
+								<span class="w-[1px] h-full bg-white"></span>
+							</div>
+						</div>
+
 						<button
 							type="button"
 							onclick={() => (type = 'debit')}
-							class="py-2.5 sm:py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 min-h-[40px] sm:min-h-0 {type === 'debit'
-								? 'bg-[#22211e] text-[#e06c75] shadow-sm font-semibold'
+							class="relative z-10 py-2.5 sm:py-2 rounded-lg text-xs font-mono font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 min-h-[42px] sm:min-h-[36px] cursor-pointer {type === 'debit'
+								? 'text-[#e06c75] font-bold drop-shadow-[0_0_8px_rgba(224,108,117,0.4)]'
 								: 'text-stone-400 hover:text-stone-200'}"
 						>
-							<ArrowUpRight class="w-3.5 h-3.5" />
-							<span>Debit (Outflow)</span>
+							<ArrowUpRight class="w-3.5 h-3.5 transition-transform duration-200 {type === 'debit' ? 'scale-110' : ''}" />
+							<span>Debit</span>
 						</button>
 						<button
 							type="button"
 							onclick={() => (type = 'credit')}
-							class="py-2.5 sm:py-1.5 rounded-lg text-xs font-medium transition-colors flex items-center justify-center gap-1.5 min-h-[40px] sm:min-h-0 {type === 'credit'
-								? 'bg-[#22211e] text-[#82b896] shadow-sm font-semibold'
+							class="relative z-10 py-2.5 sm:py-2 rounded-lg text-xs font-mono font-medium transition-colors duration-200 flex items-center justify-center gap-1.5 min-h-[42px] sm:min-h-[36px] cursor-pointer {type === 'credit'
+								? 'text-[#82b896] font-bold drop-shadow-[0_0_8px_rgba(130,184,150,0.4)]'
 								: 'text-stone-400 hover:text-stone-200'}"
 						>
-							<ArrowDownLeft class="w-3.5 h-3.5" />
-							<span>Credit (Inflow)</span>
+							<ArrowDownLeft class="w-3.5 h-3.5 transition-transform duration-200 {type === 'credit' ? 'scale-110' : ''}" />
+							<span>Credit</span>
 						</button>
 					</div>
 				</div>
@@ -199,7 +213,7 @@
 				<!-- Description / Name -->
 				<div>
 					<label for="modal-name" class="block text-[11px] text-stone-400 mb-1 font-mono uppercase tracking-wider">
-						Description / Payee
+						Description
 					</label>
 					<input
 						id="modal-name"
@@ -267,25 +281,25 @@
 				</div>
 
 				<!-- Action Buttons -->
-				<div class="flex items-center gap-2 pt-3 border-t border-stone-800/60">
+				<div class="flex items-center gap-2 pt-3 border-t border-[#2b2b25]">
 					<button
 						type="button"
 						onclick={() => appState.closeTransactionModal()}
-						class="flex-1 py-3 sm:py-2 rounded-xl border border-stone-800 text-stone-400 hover:text-stone-200 hover:bg-[#1a1917] text-xs font-medium transition-colors min-h-[44px] sm:min-h-0 flex items-center justify-center"
+						class="flex-1 py-3 sm:py-2.5 hw-keycap text-stone-300 hover:text-white text-xs font-mono font-medium transition-colors min-h-[44px] sm:min-h-0 flex items-center justify-center cursor-pointer"
 					>
-						Cancel
+						CANCEL
 					</button>
 
 					<button
 						type="submit"
 						disabled={isSubmitting}
-						class="flex-1 py-3 sm:py-2 rounded-xl bg-[#eeebe3] hover:bg-white text-[#111110] text-xs font-semibold transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm min-h-[44px] sm:min-h-0"
+						class="flex-1 py-3 sm:py-2.5 hw-keycap-primary text-xs font-mono font-bold transition-all disabled:opacity-50 flex items-center justify-center gap-1.5 shadow-sm min-h-[44px] sm:min-h-0 cursor-pointer"
 					>
 						{#if isReviewMode}
-							<Check class="w-3.5 h-3.5" />
-							<span>{isSubmitting ? 'Recording...' : 'Commit to Ledger'}</span>
+							<Check class="w-3.5 h-3.5 stroke-[2.5]" />
+							<span>{isSubmitting ? 'COMMITTING...' : 'COMMIT TO LEDGER'}</span>
 						{:else}
-							<span>{isSubmitting ? 'Recording...' : appState.editingTransaction ? 'Update' : 'Record'}</span>
+							<span>{isSubmitting ? 'RECORDING...' : appState.editingTransaction ? 'UPDATE RECORD' : 'COMMIT RECORD'}</span>
 						{/if}
 					</button>
 				</div>

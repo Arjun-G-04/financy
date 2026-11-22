@@ -174,14 +174,14 @@ export function getCategoryStyle(category?: string | null): CategoryStyle {
 		return {
 			color: '#78716c',
 			bgColor: 'transparent',
-			badgeStyle: 'background-color: #1f1e1b; color: #a8a29e; border-color: #292524;'
+			badgeStyle: 'border-color: #2b2b25; color: #a8a29e;'
 		};
 	}
 	const color = getCategoryColor(category);
 	return {
 		color,
-		bgColor: `${color}12`,
-		badgeStyle: `background-color: ${color}1f; color: ${color}; border-color: ${color}40;`
+		bgColor: `${color}18`,
+		badgeStyle: `border-color: ${color}45; color: ${color}; text-shadow: 0 0 8px ${color}35;`
 	};
 }
 

@@ -198,7 +198,7 @@
 
 	<!-- Picker Trigger Wrapper -->
 	<div
-		class="w-full flex items-center justify-between px-3 py-1.5 bg-[#111110] hover:bg-[#181816] border border-stone-800 hover:border-stone-700/80 rounded-xl text-xs transition-colors focus-within:border-stone-600 {disabled ? 'opacity-50 cursor-not-allowed' : ''}"
+		class="w-full flex items-center justify-between px-3 py-2 sm:py-1.5 bg-[#10100d] hover:bg-[#151512] border border-[#292924] hover:border-stone-600 focus-within:border-[#c9b48b] rounded-lg text-xs transition-colors shadow-[inset_0_1px_3px_rgba(0,0,0,0.8)] {disabled ? 'opacity-50 cursor-not-allowed' : ''}"
 	>
 		<button
 			type="button"
@@ -237,7 +237,7 @@
 			class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs sm:backdrop-blur-none sm:bg-transparent sm:p-0 sm:absolute sm:inset-auto sm:mt-1.5 sm:left-0 sm:w-auto"
 		>
 			<div
-				class="w-72 max-w-[calc(100vw-2rem)] bg-[#171715] border border-stone-800 rounded-2xl shadow-2xl p-3.5 space-y-3 animate-in fade-in zoom-in-95 duration-100"
+				class="w-72 max-w-[calc(100vw-2rem)] hw-chassis border border-[#292924] rounded-2xl shadow-2xl p-3.5 space-y-3 animate-in fade-in zoom-in-95 duration-100"
 			>
 				<!-- Month & Year Navigation Header -->
 				<div class="flex items-center justify-between">

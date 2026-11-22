@@ -1,4 +1,24 @@
-export type TabType = 'home' | 'history' | 'analytics' | 'reconcile' | 'import' | 'settings';
+export type TabType = 'home' | 'history' | 'analytics' | 'reconcile' | 'assets' | 'import' | 'settings';
+
+export interface AssetEntry {
+	id: string;
+	name: string;
+	initial: number;
+	final: number;
+	updatedAt?: number;
+}
+
+export interface AssetSnapshot {
+	id: string;
+	timestamp: number;
+	totalInitial: number;
+	totalFinal: number;
+}
+
+export interface AssetsData {
+	entries: AssetEntry[];
+	history: AssetSnapshot[];
+}
 
 export interface LocalTransaction {
 	id: string;
@@ -73,4 +93,17 @@ export interface SheetFetchResult {
 	spreadsheetTitle: string;
 	sheetTitle: string;
 	transactions: SheetTransaction[];
+}
+
+export interface BackupData {
+	version?: number;
+	exportedAt?: string;
+	categories?: Category[];
+	transactions?: LocalTransaction[];
+	settings?: {
+		spreadsheetId?: string;
+		currencySymbol?: string;
+		reconciliation?: Partial<ReconciliationState>;
+	};
+	assets?: AssetsData;
 }

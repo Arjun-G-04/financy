@@ -1,17 +1,19 @@
 import type { PageServerLoad } from './$types';
-import { getTransactions, getCategories, getSettings } from '#lib/server/db';
+import { getTransactions, getCategories, getSettings, getAssetsData } from '#lib/server/db';
 
 export const load: PageServerLoad = async ({ locals }) => {
-	const [transactions, categories, settings] = await Promise.all([
+	const [transactions, categories, settings, assets] = await Promise.all([
 		getTransactions(),
 		getCategories(),
-		getSettings()
+		getSettings(),
+		getAssetsData()
 	]);
 
 	return {
-		user: locals.user,
+		user: locals.user ?? null,
 		transactions,
 		categories,
-		settings
+		settings,
+		assets
 	};
 };

@@ -226,13 +226,13 @@
 	);
 </script>
 
-<div class="p-4 sm:p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-4">
+<div class="hw-chassis p-4 sm:p-6 rounded-2xl border border-[#292924] space-y-4 shadow-xl">
 	<!-- Header & Metrics -->
-	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-stone-800/60 pb-3">
+	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#292924] pb-3">
 		<div class="space-y-0.5">
-			<div class="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
+			<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200 flex items-center gap-1.5">
 				<TrendingDown class="w-3.5 h-3.5 text-[#e06c75]" />
-				<span>Daily Spend Trend</span>
+				<span>DAILY SPEND OSCILLOSCOPE</span>
 			</div>
 			<div class="text-[11px] text-stone-500 font-mono">
 				Spend per day across {dailyData.length} {dailyData.length === 1 ? 'day' : 'days'}

@@ -5,7 +5,10 @@ import type {
 	TabType,
 	ToastMessage,
 	SheetRowItem,
-	SheetsSyncState
+	SheetsSyncState,
+	AssetEntry,
+	AssetSnapshot,
+	AssetsData
 } from '#lib/types';
 import { getPresetDateRange } from '#lib/utils';
 
@@ -16,7 +19,10 @@ export type {
 	TabType,
 	ToastMessage,
 	SheetRowItem,
-	SheetsSyncState
+	SheetsSyncState,
+	AssetEntry,
+	AssetSnapshot,
+	AssetsData
 };
 
 export interface SheetReviewContext {
@@ -54,6 +60,11 @@ class AppState {
 		result: null
 	});
 
+	assets = $state<AssetsData>({
+		entries: [],
+		history: []
+	});
+
 	user = $state<{ id: string; email: string; name: string; picture?: string } | null>(null);
 	activeTab = $state<TabType>('home');
 	isTransactionModalOpen = $state<boolean>(false);
@@ -73,17 +84,48 @@ class AppState {
 
 	netBalance = $derived(this.totalCredit - this.totalDebit);
 
+	liquidAsset = $derived<AssetEntry>({
+		id: 'asset_liquid',
+		name: 'Liquid',
+		initial: this.netBalance,
+		final: this.netBalance,
+		updatedAt: Date.now()
+	});
+
+	allAssetEntries = $derived.by<AssetEntry[]>(() => {
+		const custom = this.assets.entries.filter((e) => e.id !== 'asset_liquid');
+		return [this.liquidAsset, ...custom];
+	});
+
+	totalAssetInitial = $derived(
+		this.allAssetEntries.reduce((sum, e) => sum + (Number(e.initial) || 0), 0)
+	);
+
+	totalAssetFinal = $derived(
+		this.allAssetEntries.reduce((sum, e) => sum + (Number(e.final) || 0), 0)
+	);
+
+	totalAssetDelta = $derived(this.totalAssetFinal - this.totalAssetInitial);
+
+	totalAssetDeltaPercentage = $derived(
+		this.totalAssetInitial > 0
+			? ((this.totalAssetFinal - this.totalAssetInitial) / this.totalAssetInitial) * 100
+			: 0
+	);
+
 	// Initialize from SSR data
 	init(initialData: {
 		user?: { id: string; email: string; name: string; picture?: string } | null;
 		transactions: LocalTransaction[];
 		categories: Category[];
 		settings: AppSettings;
+		assets?: AssetsData;
 	}) {
 		this.user = initialData.user || null;
 		this.transactions = initialData.transactions || [];
 		this.categories = initialData.categories || [];
 		this.settings = initialData.settings || this.settings;
+		this.assets = initialData.assets || { entries: [], history: [] };
 		this.initSheetsSyncDates();
 	}
 
@@ -227,6 +269,58 @@ class AppState {
 			throw new Error(result.error || 'Failed to save settings');
 		}
 		this.settings = result.settings;
+	}
+
+	async refreshAssets() {
+		try {
+			const res = await fetch('/api/assets');
+			const data = await res.json();
+			if (data.success) {
+				this.assets = {
+					entries: data.entries || [],
+					history: data.history || []
+				};
+			}
+		} catch (err) {
+			console.error('Failed to refresh assets:', err);
+		}
+	}
+
+	async saveAsset(entry: { id?: string; name: string; initial: number; final: number }) {
+		const res = await fetch('/api/assets', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(entry)
+		});
+		const data = await res.json();
+		if (!data.success) {
+			throw new Error(data.error || 'Failed to save asset');
+		}
+		this.assets = data.assets;
+		return data.entry as AssetEntry;
+	}
+
+	async deleteAsset(id: string) {
+		if (id === 'asset_liquid') {
+			this.showToast('info', 'System Asset', 'Liquid asset is automatically linked to ledger net balance');
+			return;
+		}
+		const res = await fetch(`/api/assets/${id}`, { method: 'DELETE' });
+		const data = await res.json();
+		if (!data.success) {
+			throw new Error(data.error || 'Failed to delete asset');
+		}
+		this.assets = data.assets;
+	}
+
+	async recordAssetSnapshot() {
+		const res = await fetch('/api/assets/snapshot', { method: 'POST' });
+		const data = await res.json();
+		if (!data.success) {
+			throw new Error(data.error || 'Failed to record snapshot');
+		}
+		this.assets = data.assets;
+		return data.snapshot as AssetSnapshot;
 	}
 }
 

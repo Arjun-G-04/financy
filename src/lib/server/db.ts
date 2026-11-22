@@ -2,8 +2,26 @@ import { createClient } from '@libsql/client';
 import fs from 'node:fs';
 import path from 'node:path';
 
-import type { LocalTransaction, Category, ReconciliationState, AppSettings } from '#lib/types';
-export type { LocalTransaction, Category, ReconciliationState, AppSettings };
+import type {
+	LocalTransaction,
+	Category,
+	ReconciliationState,
+	AppSettings,
+	AssetEntry,
+	AssetSnapshot,
+	AssetsData,
+	BackupData
+} from '#lib/types';
+export type {
+	LocalTransaction,
+	Category,
+	ReconciliationState,
+	AppSettings,
+	AssetEntry,
+	AssetSnapshot,
+	AssetsData,
+	BackupData
+};
 import { env } from '#lib/server/env';
 
 export const db = createClient({
@@ -33,6 +51,19 @@ export async function initDb() {
 		`CREATE TABLE IF NOT EXISTS settings (
 			key TEXT PRIMARY KEY,
 			value TEXT NOT NULL
+		);`,
+		`CREATE TABLE IF NOT EXISTS asset_entries (
+			id TEXT PRIMARY KEY,
+			name TEXT NOT NULL,
+			initial REAL NOT NULL,
+			final REAL NOT NULL,
+			updated_at INTEGER NOT NULL
+		);`,
+		`CREATE TABLE IF NOT EXISTS asset_snapshots (
+			id TEXT PRIMARY KEY,
+			timestamp INTEGER NOT NULL,
+			total_initial REAL NOT NULL,
+			total_final REAL NOT NULL
 		);`
 	]);
 
@@ -68,15 +99,7 @@ export async function initDb() {
 	isInitialized = true;
 }
 
-export async function restoreBackupData(data: {
-	categories?: Category[];
-	transactions?: any[];
-	settings?: {
-		spreadsheetId?: string;
-		currencySymbol?: string;
-		reconciliation?: Partial<ReconciliationState>;
-	};
-}) {
+export async function restoreBackupData(data: BackupData) {
 	const statements: { sql: string; args: any[] }[] = [];
 
 	if (data.categories && Array.isArray(data.categories)) {
@@ -158,6 +181,39 @@ export async function restoreBackupData(data: {
 					args: ['reconcile_last_updated', String(r.lastUpdated)]
 				});
 			}
+		}
+	}
+
+	if (data.assets?.entries && Array.isArray(data.assets.entries)) {
+		for (const entry of data.assets.entries) {
+			// Skip any legacy or accidental liquid system entries from backup
+			if (entry.id === 'asset_liquid' || entry.name.toLowerCase() === 'liquid') continue;
+			statements.push({
+				sql: `INSERT OR REPLACE INTO asset_entries (id, name, initial, final, updated_at)
+				      VALUES (?, ?, ?, ?, ?)`,
+				args: [
+					entry.id,
+					entry.name,
+					Number(entry.initial),
+					Number(entry.final),
+					Number(entry.updatedAt || Date.now())
+				]
+			});
+		}
+	}
+
+	if (data.assets?.history && Array.isArray(data.assets.history)) {
+		for (const snap of data.assets.history) {
+			statements.push({
+				sql: `INSERT OR REPLACE INTO asset_snapshots (id, timestamp, total_initial, total_final)
+				      VALUES (?, ?, ?, ?)`,
+				args: [
+					snap.id,
+					Number(snap.timestamp),
+					Number(snap.totalInitial),
+					Number(snap.totalFinal)
+				]
+			});
 		}
 	}
 
@@ -444,12 +500,108 @@ export async function saveSettings(settings: Partial<AppSettings>): Promise<void
 	}
 }
 
-export async function getFullBackupData() {
+export async function getAssetsData(): Promise<AssetsData> {
 	await initDb();
-	const [txs, cats, settings] = await Promise.all([
+	const [entriesRes, historyRes] = await Promise.all([
+		db.execute('SELECT * FROM asset_entries ORDER BY updated_at DESC, id DESC'),
+		db.execute('SELECT * FROM asset_snapshots ORDER BY timestamp ASC')
+	]);
+
+	const entries: AssetEntry[] = entriesRes.rows.map((r) => ({
+		id: String(r.id),
+		name: String(r.name),
+		initial: Number(r.initial),
+		final: Number(r.final),
+		updatedAt: Number(r.updated_at)
+	}));
+
+	const history: AssetSnapshot[] = historyRes.rows.map((r) => ({
+		id: String(r.id),
+		timestamp: Number(r.timestamp),
+		totalInitial: Number(r.total_initial),
+		totalFinal: Number(r.total_final)
+	}));
+
+	return { entries, history };
+}
+
+export async function saveAssetEntry(entry: {
+	id?: string;
+	name: string;
+	initial: number;
+	final: number;
+}): Promise<AssetEntry> {
+	const trimmedName = entry.name.trim();
+	if (entry.id === 'asset_liquid' || trimmedName.toLowerCase() === 'liquid') {
+		throw new Error('Liquid asset is reserved and managed automatically by ledger net balance');
+	}
+	await initDb();
+	const id = entry.id || `asset_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+	const now = Date.now();
+
+	await db.execute({
+		sql: `INSERT OR REPLACE INTO asset_entries (id, name, initial, final, updated_at)
+		      VALUES (?, ?, ?, ?, ?)`,
+		args: [id, trimmedName, Number(entry.initial), Number(entry.final), now]
+	});
+
+	await recordAssetSnapshot();
+
+	return {
+		id,
+		name: trimmedName,
+		initial: Number(entry.initial),
+		final: Number(entry.final),
+		updatedAt: now
+	};
+}
+
+export async function deleteAssetEntry(id: string): Promise<void> {
+	if (id === 'asset_liquid') {
+		throw new Error('Cannot delete default Liquid capital asset');
+	}
+	await initDb();
+	await db.execute({
+		sql: 'DELETE FROM asset_entries WHERE id = ?',
+		args: [id]
+	});
+	await recordAssetSnapshot();
+}
+
+export async function recordAssetSnapshot(): Promise<AssetSnapshot> {
+	await initDb();
+	const [entriesRes, netRes] = await Promise.all([
+		db.execute('SELECT initial, final FROM asset_entries'),
+		db.execute(`
+			SELECT COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0) as net
+			FROM transactions
+		`)
+	]);
+
+	const netBalance = Number(netRes.rows[0]?.net || 0);
+	let totalInitial = netBalance;
+	let totalFinal = netBalance;
+	for (const r of entriesRes.rows) {
+		totalInitial += Number(r.initial);
+		totalFinal += Number(r.final);
+	}
+	const now = Date.now();
+	const id = `snap_${now}_${Math.random().toString(36).substring(2, 6)}`;
+	await db.execute({
+		sql: `INSERT INTO asset_snapshots (id, timestamp, total_initial, total_final)
+		      VALUES (?, ?, ?, ?)`,
+		args: [id, now, totalInitial, totalFinal]
+	});
+	return { id, timestamp: now, totalInitial, totalFinal };
+}
+
+export async function getFullBackupData(): Promise<BackupData> {
+	await initDb();
+	const [txs, cats, settings, assets] = await Promise.all([
 		getTransactions(),
 		getCategories(),
-		getSettings()
+		getSettings(),
+		getAssetsData()
 	]);
 
 	return {
@@ -457,6 +609,7 @@ export async function getFullBackupData() {
 		exportedAt: new Date().toISOString(),
 		settings,
 		categories: cats,
-		transactions: txs
+		transactions: txs,
+		assets
 	};
 }

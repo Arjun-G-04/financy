@@ -4,7 +4,7 @@
 	import AllocationRing from '#lib/components/AllocationRing.svelte';
 import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 	import { formatCurrency as formatCur, formatDate, getCategoryColor, getPresetDateRange } from '#lib/utils';
-	import { Calendar, Eye, EyeOff, RotateCcw } from '@lucide/svelte';
+	import { Calendar, Eye, EyeOff, RotateCcw, PieChart } from '@lucide/svelte';
 
 	let timeRange = $state<'this_month' | 'last_month' | 'custom' | 'all'>('this_month');
 	let customStartDate = $state('');
@@ -143,190 +143,209 @@ import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 	}
 </script>
 
-<div class="space-y-6">
-	<!-- Page Header & Timeframe Switcher -->
-	<div class="flex flex-col sm:flex-row sm:items-end justify-between border-b border-stone-800/80 pb-4 gap-3">
-		<div>
-			<h1 class="text-xl sm:text-2xl font-serif tracking-tight text-[#f5f2ea]">Financial Analytics</h1>
-		</div>
-
-		<!-- Time Switcher Tabs (2x2 on mobile, flex on desktop) -->
-		<div class="grid grid-cols-2 sm:flex items-center p-1 bg-[#171715] border border-stone-800 rounded-xl text-xs w-full sm:w-auto gap-1">
-			<button
-				type="button"
-				onclick={() => (timeRange = 'this_month')}
-				class="py-2 sm:py-1 px-3 text-center rounded-lg transition-colors min-h-[36px] sm:min-h-0 {timeRange === 'this_month'
-					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm font-medium'
-					: 'text-stone-400 hover:text-stone-200'}"
-			>
-				This Month
-			</button>
-			<button
-				type="button"
-				onclick={() => (timeRange = 'last_month')}
-				class="py-2 sm:py-1 px-3 text-center rounded-lg transition-colors min-h-[36px] sm:min-h-0 {timeRange === 'last_month'
-					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm font-medium'
-					: 'text-stone-400 hover:text-stone-200'}"
-			>
-				Last Month
-			</button>
-			<button
-				type="button"
-				onclick={() => {
-					timeRange = 'custom';
-					initCustomDates();
-				}}
-				class="py-2 sm:py-1 px-3 text-center rounded-lg transition-colors min-h-[36px] sm:min-h-0 {timeRange === 'custom'
-					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm font-medium'
-					: 'text-stone-400 hover:text-stone-200'}"
-			>
-				Custom Range
-			</button>
-			<button
-				type="button"
-				onclick={() => (timeRange = 'all')}
-				class="py-2 sm:py-1 px-3 text-center rounded-lg transition-colors min-h-[36px] sm:min-h-0 {timeRange === 'all'
-					? 'bg-[#22211e] text-[#f5f2ea] shadow-sm font-medium'
-					: 'text-stone-400 hover:text-stone-200'}"
-			>
-				All Time
-			</button>
-		</div>
-	</div>
-
-	<!-- Custom Date Range Picker Container -->
-	{#if timeRange === 'custom'}
-		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-3">
-			<div class="text-xs font-semibold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
-				<Calendar class="w-3.5 h-3.5 text-stone-500" />
-				<span>Select Date Interval</span>
+<div class="space-y-4 sm:space-y-5">
+	<!-- Top Section: Physical Instrument Faceplate -->
+	<section class="hw-chassis rounded-2xl p-4 sm:p-6 lg:p-7 relative shadow-2xl space-y-4 sm:space-y-5">
+		<!-- Faceplate Header -->
+		<div class="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#292924] pb-4 px-1 sm:px-2 gap-3">
+			<div class="flex items-center gap-2.5 sm:gap-3">
+				<PieChart class="w-6 h-6 sm:w-7 sm:h-7 text-[#82b896] stroke-[2.2]" />
+				<span class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+					FINANCIAL TELEMETRY & ANALYTICS
+				</span>
 			</div>
-			<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-				<div>
-					<DatePicker
-						bind:value={customStartDate}
-						label="Start Date"
-						placeholder="From"
-					/>
-				</div>
-				<div>
-					<DatePicker
-						bind:value={customEndDate}
-						label="End Date"
-						placeholder="To"
-					/>
-				</div>
+
+			<!-- Time Switcher Tabs: Hardware Tactile Keycap Bay -->
+			<div class="grid grid-cols-2 sm:flex items-center p-1 bg-[#0c0c0a] border border-[#262622] rounded-xl text-xs w-full sm:w-auto gap-1">
+				<button
+					type="button"
+					onclick={() => (timeRange = 'this_month')}
+					class="py-2 sm:py-1.5 px-3 text-center rounded-lg text-xs font-mono transition-all min-h-[36px] sm:min-h-0 cursor-pointer {timeRange === 'this_month'
+						? 'bg-[#22221e] text-[#f5f2ea] border border-[#3d3d36] font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.06)]'
+						: 'text-stone-400 hover:text-stone-200 hover:bg-[#181815]'}"
+				>
+					THIS MONTH
+				</button>
+				<button
+					type="button"
+					onclick={() => (timeRange = 'last_month')}
+					class="py-2 sm:py-1.5 px-3 text-center rounded-lg text-xs font-mono transition-all min-h-[36px] sm:min-h-0 cursor-pointer {timeRange === 'last_month'
+						? 'bg-[#22221e] text-[#f5f2ea] border border-[#3d3d36] font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.06)]'
+						: 'text-stone-400 hover:text-stone-200 hover:bg-[#181815]'}"
+				>
+					LAST MONTH
+				</button>
+				<button
+					type="button"
+					onclick={() => {
+						timeRange = 'custom';
+						initCustomDates();
+					}}
+					class="py-2 sm:py-1.5 px-3 text-center rounded-lg text-xs font-mono transition-all min-h-[36px] sm:min-h-0 cursor-pointer {timeRange === 'custom'
+						? 'bg-[#22221e] text-[#f5f2ea] border border-[#3d3d36] font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.06)]'
+						: 'text-stone-400 hover:text-stone-200 hover:bg-[#181815]'}"
+				>
+					CUSTOM RANGE
+				</button>
+				<button
+					type="button"
+					onclick={() => (timeRange = 'all')}
+					class="py-2 sm:py-1.5 px-3 text-center rounded-lg text-xs font-mono transition-all min-h-[36px] sm:min-h-0 cursor-pointer {timeRange === 'all'
+						? 'bg-[#22221e] text-[#f5f2ea] border border-[#3d3d36] font-bold shadow-[inset_0_1px_2px_rgba(0,0,0,0.8),0_1px_0_rgba(255,255,255,0.06)]'
+						: 'text-stone-400 hover:text-stone-200 hover:bg-[#181815]'}"
+				>
+					ALL TIME
+				</button>
 			</div>
 		</div>
-	{/if}
 
-	<!-- Category Filtering / Exclusions Toolbar -->
-	{#if allAvailableCategories.length > 0}
-		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-2">
-			<div class="flex items-center justify-between text-xs">
-				<span class="text-stone-400 font-medium">Filter Categories ({allAvailableCategories.length}):</span>
-				{#if excludedCategories.length > 0}
-					<button
-						type="button"
-						onclick={resetExclusions}
-						class="text-[11px] font-mono text-stone-400 hover:text-stone-200 flex items-center gap-1 transition-colors"
-					>
-						<RotateCcw class="w-3 h-3" />
-						<span>Reset ({excludedCategories.length} excluded)</span>
-					</button>
+		<!-- Custom Date Range Picker Container -->
+		{#if timeRange === 'custom'}
+			<div class="p-4 rounded-xl bg-[#10100d] border border-[#292924] space-y-3">
+				<div class="text-xs font-mono font-bold uppercase tracking-wider text-stone-400 flex items-center gap-1.5">
+					<Calendar class="w-3.5 h-3.5 text-stone-500" />
+					<span>SELECT DATE INTERVAL</span>
+				</div>
+				<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+					<div>
+						<DatePicker
+							bind:value={customStartDate}
+							label="Start Date"
+							placeholder="From"
+						/>
+					</div>
+					<div>
+						<DatePicker
+							bind:value={customEndDate}
+							label="End Date"
+							placeholder="To"
+						/>
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		<!-- Category Filtering / Exclusions Toolbar -->
+		{#if allAvailableCategories.length > 0}
+			<div class="p-3.5 sm:p-4 rounded-xl bg-[#10100d] border border-[#292924] space-y-2">
+				<div class="flex items-center justify-between text-xs">
+					<span class="text-stone-400 font-mono text-[11px] uppercase tracking-wider font-bold">
+						FILTER CATEGORIES ({allAvailableCategories.length}):
+					</span>
+					{#if excludedCategories.length > 0}
+						<button
+							type="button"
+							onclick={resetExclusions}
+							class="text-[11px] font-mono text-[#f97316] hover:text-[#fb923c] flex items-center gap-1 transition-colors cursor-pointer"
+						>
+							<RotateCcw class="w-3 h-3" />
+							<span>RESET ({excludedCategories.length} EXCLUDED)</span>
+						</button>
+					{/if}
+				</div>
+
+				<div class="flex flex-wrap gap-1.5 pt-1">
+					{#each allAvailableCategories as cat}
+						{@const isExcluded = excludedCategories.includes(cat)}
+						<button
+							type="button"
+							onclick={() => toggleExcludeCategory(cat)}
+							class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-all border cursor-pointer
+								{isExcluded
+								? 'bg-[#080807] text-stone-500 border-[#22221d] line-through opacity-60 hover:opacity-100 hover:text-stone-300'
+								: 'bg-[#1c1c19] text-stone-200 border-[#2e2e28] hover:border-stone-500 shadow-sm'}"
+							title={isExcluded ? `Click to include ${cat}` : `Click to exclude ${cat}`}
+						>
+							{#if isExcluded}
+								<EyeOff class="w-3 h-3 text-stone-500" />
+							{:else}
+								<Eye class="w-3 h-3 text-[#82b896]" />
+							{/if}
+							<span>{cat}</span>
+						</button>
+					{/each}
+				</div>
+			</div>
+		{/if}
+
+		<!-- VFD Telemetry Flow Meters -->
+		<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 pt-1">
+			<!-- Inflow Meter -->
+			<div class="hw-vfd-display p-4 sm:p-5 rounded-xl flex flex-col justify-between space-y-2">
+				<div class="text-[10px] font-mono uppercase tracking-wider text-[#82b896]/70 font-bold">
+					INFLOW
+				</div>
+				<div class="text-2xl sm:text-3xl font-mono tabular-nums font-bold text-[#82b896] drop-shadow-[0_0_8px_rgba(130,184,150,0.3)] truncate">
+					{formatCurrency(totals.credit)}
+				</div>
+			</div>
+
+			<!-- Active Outflow Meter -->
+			<div class="hw-vfd-display hw-vfd-rose p-4 sm:p-5 rounded-xl flex flex-col justify-between space-y-2">
+				<div class="text-[10px] font-mono uppercase tracking-wider text-rose-300/70 font-bold">
+					ACTIVE OUTFLOW
+				</div>
+				<div class="text-2xl sm:text-3xl font-mono tabular-nums font-bold text-[#e06c75] drop-shadow-[0_0_12px_rgba(224,108,117,0.5)] truncate">
+					{formatCurrency(totals.debit)}
+				</div>
+				{#if rawTotals.debit !== totals.debit}
+					<div class="text-[10px] font-mono text-stone-500">
+						({formatCurrency(rawTotals.debit - totals.debit)} excluded)
+					</div>
 				{/if}
 			</div>
 
-			<div class="flex flex-wrap gap-1.5 pt-1">
-				{#each allAvailableCategories as cat}
-					{@const isExcluded = excludedCategories.includes(cat)}
-					<button
-						type="button"
-						onclick={() => toggleExcludeCategory(cat)}
-						class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-mono transition-all border
-							{isExcluded
-							? 'bg-[#121210] text-stone-500 border-stone-800 line-through opacity-60 hover:opacity-100 hover:text-stone-300'
-							: 'bg-[#201f1c] text-stone-200 border-stone-700/60 hover:border-stone-500 shadow-sm'}"
-						title={isExcluded ? `Click to include ${cat}` : `Click to exclude ${cat}`}
-					>
-						{#if isExcluded}
-							<EyeOff class="w-3 h-3 text-stone-500" />
-						{:else}
-							<Eye class="w-3 h-3 text-[#82b896]" />
-						{/if}
-						<span>{cat}</span>
-					</button>
-				{/each}
-			</div>
-		</div>
-	{/if}
-
-	<!-- Minimal Flow Overview -->
-	<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
-			<div class="text-[11px] text-stone-500 font-medium uppercase tracking-wider">Inflow</div>
-			<div class="text-xl font-mono tabular-nums font-semibold text-[#82b896]">
-				{formatCurrency(totals.credit)}
-			</div>
-		</div>
-
-		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
-			<div class="text-[11px] text-stone-500 font-medium uppercase tracking-wider">Active Outflow</div>
-			<div class="text-xl font-mono tabular-nums font-semibold text-[#e06c75]">
-				{formatCurrency(totals.debit)}
-			</div>
-			{#if rawTotals.debit !== totals.debit}
-				<div class="text-[10px] font-mono text-stone-500">
-					({formatCurrency(rawTotals.debit - totals.debit)} excluded)
+			<!-- Active Net Flow Meter -->
+			<div class="hw-vfd-display {totals.net < 0 ? 'hw-vfd-rose' : ''} p-4 sm:p-5 rounded-xl flex flex-col justify-between space-y-2">
+				<div class="text-[10px] font-mono uppercase tracking-wider {totals.net >= 0 ? 'text-[#82b896]/70' : 'text-rose-300/70'} font-bold">
+					ACTIVE NET FLOW
 				</div>
-			{/if}
-		</div>
-
-		<div class="p-4 rounded-xl bg-[#171715] border border-stone-800/80 space-y-1">
-			<div class="text-[11px] text-stone-500 font-medium uppercase tracking-wider">Active Net Flow</div>
-			<div class="text-xl font-mono tabular-nums font-semibold {totals.net >= 0 ? 'text-[#82b896]' : 'text-[#e06c75]'}">
-				{formatCurrency(Math.abs(totals.net))}
+				<div class="text-2xl sm:text-3xl font-mono tabular-nums font-bold {totals.net >= 0 ? 'text-[#82b896] drop-shadow-[0_0_8px_rgba(130,184,150,0.3)]' : 'text-[#e06c75] drop-shadow-[0_0_12px_rgba(224,108,117,0.5)]'} truncate">
+					{formatCurrency(Math.abs(totals.net))}
+				</div>
 			</div>
 		</div>
-	</div>
+	</section>
 
 	<!-- Category Allocation Ring Component -->
 	<AllocationRing categories={categoryBreakdown} totalAmount={activeExpenseTotal} />
 
 	<!-- Category List Card (Horizontal Bars Section) -->
-	<div class="p-5 rounded-xl bg-[#171715] border border-stone-800/80 space-y-4">
-		<div class="text-xs font-semibold uppercase tracking-wider text-stone-400">Expense Breakdown by Category</div>
+	<section class="hw-chassis rounded-2xl p-5 sm:p-6 border border-[#292924] space-y-4 shadow-xl">
+		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+			EXPENSE BREAKDOWN BY CATEGORY
+		</div>
 
 		{#if categoryBreakdown.length === 0}
 			<div class="py-8 text-center text-stone-500 text-xs font-mono">
 				No debit entries recorded for this period.
 			</div>
 		{:else}
-			<div class="space-y-3.5">
+			<div class="space-y-3">
 				{#each categoryBreakdown as cat}
 					<div
 						role="button"
 						tabindex="0"
 						onmouseenter={() => (hoveredCategory = cat.name)}
 						onmouseleave={() => (hoveredCategory = null)}
-						class="space-y-1 p-1 rounded-lg transition-colors {hoveredCategory === cat.name ? 'bg-[#1f1e1b]' : ''}"
+						class="space-y-1.5 p-2 rounded-lg transition-colors {hoveredCategory === cat.name ? 'bg-[#1f1e1b]' : ''}"
 					>
 						<div class="flex items-center justify-between text-xs">
 							<div class="flex items-center gap-2">
 								<span
-									class="w-2 h-2 rounded-full"
+									class="w-2 h-2 rounded-full shrink-0"
 									style="background-color: {cat.color};"
 								></span>
-								<span class="font-medium text-stone-300">{cat.name}</span>
+								<span class="font-mono text-xs font-bold text-stone-200">{cat.name}</span>
 							</div>
 							<div class="flex items-center gap-3">
 								<span class="font-mono tabular-nums text-stone-500">{cat.percentage.toFixed(1)}%</span>
-								<span class="font-mono tabular-nums font-semibold text-[#f5f2ea]">
+								<span class="font-mono tabular-nums font-bold text-[#f5f2ea]">
 									{formatCurrency(cat.amount)}
 								</span>
 							</div>
 						</div>
-						<div class="w-full h-1.5 rounded-full bg-[#111110] overflow-hidden">
+						<div class="w-full h-2 rounded-full bg-[#0c0c0a] border border-[#242420] overflow-hidden">
 							<div
 								class="h-full rounded-full transition-all duration-300"
 								style="width: {cat.percentage}%; background-color: {cat.color};"
@@ -336,7 +355,7 @@ import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 				{/each}
 			</div>
 		{/if}
-	</div>
+	</section>
 
 	<!-- Daily Spend Trend Chart Component (Spend per Day vs Days) -->
 	<DailySpendChart
