@@ -178,14 +178,7 @@
 							class="absolute top-1 bottom-1 w-[calc(50%-4px)] left-1 rounded-lg pointer-events-none transition-all duration-300 ease-[cubic-bezier(0.34,1.3,0.64,1)] {type === 'credit'
 								? 'translate-x-full bg-gradient-to-b from-[#1c2a20] to-[#111a14] border border-[#295236] shadow-[0_3px_8px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.15),0_0_12px_rgba(130,184,150,0.25)]'
 								: 'translate-x-0 bg-gradient-to-b from-[#2a1c1d] to-[#1a1112] border border-[#52292f] shadow-[0_3px_8px_rgba(0,0,0,0.7),inset_0_1px_0_rgba(255,255,255,0.15),0_0_12px_rgba(224,108,117,0.25)]'}"
-						>
-							<!-- Machined Grip Knurl Ridges -->
-							<div class="absolute inset-y-2 left-1/2 -translate-x-1/2 w-2.5 flex justify-between items-center opacity-25">
-								<span class="w-[1px] h-full bg-white"></span>
-								<span class="w-[1px] h-full bg-white"></span>
-								<span class="w-[1px] h-full bg-white"></span>
-							</div>
-						</div>
+						></div>
 
 						<button
 							type="button"
