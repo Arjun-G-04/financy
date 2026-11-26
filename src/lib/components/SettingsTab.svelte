@@ -119,7 +119,11 @@
 		activeExport = format;
 		try {
 			const filename = `financy_${format}_${Date.now()}.${config.ext}`;
-			await downloadFile(config.url, filename, config.title);
+			const url =
+				format === 'excel'
+					? `${config.url}?tz=${encodeURIComponent(Intl.DateTimeFormat().resolvedOptions().timeZone)}`
+					: config.url;
+			await downloadFile(url, filename, config.title);
 		} catch (err: unknown) {
 			const message = err instanceof Error ? err.message : 'Export failed';
 			appState.showToast('error', 'Export Failed', message);

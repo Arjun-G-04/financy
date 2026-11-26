@@ -525,11 +525,41 @@ export async function getAssetsData(): Promise<AssetsData> {
 	return { entries, history };
 }
 
+function buildDailySnapshotStatements(now: number, localDate?: string) {
+	const match = localDate && /^\d{4}-\d{2}-\d{2}$/.test(localDate) ? localDate : null;
+	const d = new Date(now);
+	const yyyy = match ? Number(match.slice(0, 4)) : d.getFullYear();
+	const monthIdx = match ? Number(match.slice(5, 7)) - 1 : d.getMonth();
+	const day = match ? Number(match.slice(8, 10)) : d.getDate();
+
+	const startOfDay = new Date(yyyy, monthIdx, day).getTime();
+	const endOfDay = new Date(yyyy, monthIdx, day + 1).getTime();
+	const dateKey = `${yyyy}-${String(monthIdx + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+	const id = `snap_${dateKey}`;
+
+	return [
+		{
+			sql: `DELETE FROM asset_snapshots WHERE timestamp >= ? AND timestamp < ?`,
+			args: [startOfDay, endOfDay]
+		},
+		{
+			sql: `INSERT OR REPLACE INTO asset_snapshots (id, timestamp, total_initial, total_final)
+			      VALUES (
+			        ?, ?,
+			        (SELECT COALESCE(SUM(initial), 0) FROM asset_entries) + (SELECT COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0) FROM transactions),
+			        (SELECT COALESCE(SUM(final), 0) FROM asset_entries) + (SELECT COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0) FROM transactions)
+			      )`,
+			args: [id, now]
+		}
+	];
+}
+
 export async function saveAssetEntry(entry: {
 	id?: string;
 	name: string;
 	initial: number;
 	final: number;
+	localDate?: string;
 }): Promise<AssetEntry> {
 	const trimmedName = entry.name.trim();
 	if (entry.id === 'asset_liquid' || trimmedName.toLowerCase() === 'liquid') {
@@ -539,13 +569,17 @@ export async function saveAssetEntry(entry: {
 	const id = entry.id || `asset_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 	const now = Date.now();
 
-	await db.execute({
-		sql: `INSERT OR REPLACE INTO asset_entries (id, name, initial, final, updated_at)
-		      VALUES (?, ?, ?, ?, ?)`,
-		args: [id, trimmedName, Number(entry.initial), Number(entry.final), now]
-	});
-
-	await recordAssetSnapshot();
+	await db.batch(
+		[
+			{
+				sql: `INSERT OR REPLACE INTO asset_entries (id, name, initial, final, updated_at)
+				      VALUES (?, ?, ?, ?, ?)`,
+				args: [id, trimmedName, Number(entry.initial), Number(entry.final), now]
+			},
+			...buildDailySnapshotStatements(now, entry.localDate)
+		],
+		'write'
+	);
 
 	return {
 		id,
@@ -556,43 +590,22 @@ export async function saveAssetEntry(entry: {
 	};
 }
 
-export async function deleteAssetEntry(id: string): Promise<void> {
+export async function deleteAssetEntry(id: string, localDate?: string): Promise<void> {
 	if (id === 'asset_liquid') {
 		throw new Error('Cannot delete default Liquid capital asset');
 	}
 	await initDb();
-	await db.execute({
-		sql: 'DELETE FROM asset_entries WHERE id = ?',
-		args: [id]
-	});
-	await recordAssetSnapshot();
-}
-
-export async function recordAssetSnapshot(): Promise<AssetSnapshot> {
-	await initDb();
-	const [entriesRes, netRes] = await Promise.all([
-		db.execute('SELECT initial, final FROM asset_entries'),
-		db.execute(`
-			SELECT COALESCE(SUM(CASE WHEN type = 'credit' THEN amount ELSE -amount END), 0) as net
-			FROM transactions
-		`)
-	]);
-
-	const netBalance = Number(netRes.rows[0]?.net || 0);
-	let totalInitial = netBalance;
-	let totalFinal = netBalance;
-	for (const r of entriesRes.rows) {
-		totalInitial += Number(r.initial);
-		totalFinal += Number(r.final);
-	}
 	const now = Date.now();
-	const id = `snap_${now}_${Math.random().toString(36).substring(2, 6)}`;
-	await db.execute({
-		sql: `INSERT INTO asset_snapshots (id, timestamp, total_initial, total_final)
-		      VALUES (?, ?, ?, ?)`,
-		args: [id, now, totalInitial, totalFinal]
-	});
-	return { id, timestamp: now, totalInitial, totalFinal };
+	await db.batch(
+		[
+			{
+				sql: 'DELETE FROM asset_entries WHERE id = ?',
+				args: [id]
+			},
+			...buildDailySnapshotStatements(now, localDate)
+		],
+		'write'
+	);
 }
 
 export async function getFullBackupData(): Promise<BackupData> {

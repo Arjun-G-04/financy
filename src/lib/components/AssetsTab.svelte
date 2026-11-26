@@ -8,7 +8,6 @@
 	import {
 		Coins,
 		Plus,
-		Camera,
 		Trash2,
 		Pencil,
 		TrendingUp,
@@ -18,7 +17,6 @@
 
 	let isModalOpen = $state(false);
 	let selectedEntry = $state<AssetEntry | null>(null);
-	let isCapturingSnapshot = $state(false);
 	let boardKey = $state(1);
 
 	function formatCurrency(val: number) {
@@ -75,24 +73,6 @@
 			appState.showToast('error', 'Delete Failed', err.message);
 		}
 	}
-
-	async function handleManualSnapshot() {
-		if (isCapturingSnapshot) return;
-		isCapturingSnapshot = true;
-		try {
-			const snap = await appState.recordAssetSnapshot();
-			boardKey++;
-			appState.showToast(
-				'success',
-				'Snapshot Recorded',
-				`Valuation ${formatCurrency(snap.totalFinal)} at ${formatTimestamp(snap.timestamp)}`
-			);
-		} catch (err: any) {
-			appState.showToast('error', 'Snapshot Failed', err.message);
-		} finally {
-			isCapturingSnapshot = false;
-		}
-	}
 </script>
 
 <div class="space-y-4 sm:space-y-5">
@@ -117,18 +97,6 @@
 
 			<!-- Action Controls -->
 			<div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-				<!-- Record Snapshot Button -->
-				<button
-					type="button"
-					onclick={handleManualSnapshot}
-					disabled={isCapturingSnapshot || appState.assets.entries.length === 0}
-					class="hw-keycap flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-mono text-stone-300 hover:text-white cursor-pointer min-h-[40px] sm:min-h-[38px] shadow-sm disabled:opacity-50"
-					title="Record current asset values to timestamp timeline"
-				>
-					<Camera class="w-3.5 h-3.5 text-[#f97316] {isCapturingSnapshot ? 'animate-spin' : ''}" />
-					<span>{isCapturingSnapshot ? 'LOGGING...' : 'RECORD SNAPSHOT'}</span>
-				</button>
-
 				<!-- Tactile New Asset Button -->
 				<button
 					type="button"

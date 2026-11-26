@@ -287,10 +287,12 @@ class AppState {
 	}
 
 	async saveAsset(entry: { id?: string; name: string; initial: number; final: number }) {
+		const now = new Date();
+		const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 		const res = await fetch('/api/assets', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(entry)
+			body: JSON.stringify({ ...entry, localDate })
 		});
 		const data = await res.json();
 		if (!data.success) {
@@ -305,22 +307,14 @@ class AppState {
 			this.showToast('info', 'System Asset', 'Liquid asset is automatically linked to ledger net balance');
 			return;
 		}
-		const res = await fetch(`/api/assets/${id}`, { method: 'DELETE' });
+		const now = new Date();
+		const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+		const res = await fetch(`/api/assets/${id}?localDate=${encodeURIComponent(localDate)}`, { method: 'DELETE' });
 		const data = await res.json();
 		if (!data.success) {
 			throw new Error(data.error || 'Failed to delete asset');
 		}
 		this.assets = data.assets;
-	}
-
-	async recordAssetSnapshot() {
-		const res = await fetch('/api/assets/snapshot', { method: 'POST' });
-		const data = await res.json();
-		if (!data.success) {
-			throw new Error(data.error || 'Failed to record snapshot');
-		}
-		this.assets = data.assets;
-		return data.snapshot as AssetSnapshot;
 	}
 }
 

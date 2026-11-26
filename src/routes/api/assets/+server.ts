@@ -29,7 +29,8 @@ export const POST: RequestHandler = async ({ request }) => {
 			id: body.id,
 			name,
 			initial,
-			final
+			final,
+			localDate: typeof body.localDate === 'string' ? body.localDate : undefined
 		});
 
 		const assets = await getAssetsData();

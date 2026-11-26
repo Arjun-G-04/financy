@@ -20,6 +20,8 @@ import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 	const thisMonthStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
 	const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
 	const lastMonthStr = `${lastMonthDate.getFullYear()}-${String(lastMonthDate.getMonth() + 1).padStart(2, '0')}`;
+	const daysInCurrentMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+	const existingDaysCount = Math.max(1, now.getDate());
 
 	// Set default custom dates if not set
 	function initCustomDates() {
@@ -126,7 +128,8 @@ import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 			name,
 			amount,
 			percentage: (amount / total) * 100,
-			color: getCategoryColor(name)
+			color: getCategoryColor(name),
+			projectedTotal: timeRange === 'this_month' ? amount * (daysInCurrentMonth / existingDaysCount) : amount
 		}));
 	});
 
@@ -312,7 +315,7 @@ import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 
 	<!-- Category List Card (Horizontal Bars Section) -->
 	<section class="hw-chassis rounded-2xl p-5 sm:p-6 border border-[#292924] space-y-4 shadow-xl">
-		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200">
+		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200 border-b border-[#292924] pb-3">
 			EXPENSE BREAKDOWN BY CATEGORY
 		</div>
 
@@ -322,7 +325,7 @@ import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 			</div>
 		{:else}
 			<div class="space-y-3">
-				{#each categoryBreakdown as cat}
+				{#each categoryBreakdown as cat (cat.name)}
 					<div
 						role="button"
 						tabindex="0"
@@ -330,15 +333,15 @@ import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 						onmouseleave={() => (hoveredCategory = null)}
 						class="space-y-1.5 p-2 rounded-lg transition-colors {hoveredCategory === cat.name ? 'bg-[#1f1e1b]' : ''}"
 					>
-						<div class="flex items-center justify-between text-xs">
-							<div class="flex items-center gap-2">
+						<div class="flex items-center justify-between text-xs gap-2">
+							<div class="flex items-center gap-2 min-w-0">
 								<span
 									class="w-2 h-2 rounded-full shrink-0"
 									style="background-color: {cat.color};"
 								></span>
-								<span class="font-mono text-xs font-bold text-stone-200">{cat.name}</span>
+								<span class="font-mono text-xs font-bold text-stone-200 truncate">{cat.name}</span>
 							</div>
-							<div class="flex items-center gap-3">
+							<div class="flex items-center gap-3 shrink-0">
 								<span class="font-mono tabular-nums text-stone-500">{cat.percentage.toFixed(1)}%</span>
 								<span class="font-mono tabular-nums font-bold text-[#f5f2ea]">
 									{formatCurrency(cat.amount)}
@@ -351,6 +354,13 @@ import DailySpendChart from '#lib/components/DailySpendChart.svelte';
 								style="width: {cat.percentage}%; background-color: {cat.color};"
 							></div>
 						</div>
+						{#if timeRange === 'this_month'}
+							<div class="flex items-center justify-end text-[10px] font-mono tabular-nums pt-0.5">
+								<span class="text-[#c9b48b]">
+									EOM {formatCurrency(cat.projectedTotal)}
+								</span>
+							</div>
+						{/if}
 					</div>
 				{/each}
 			</div>
