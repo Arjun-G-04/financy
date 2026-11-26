@@ -50,6 +50,7 @@
 			fullDate: string;
 			amount: number;
 			count: number;
+			isWeekend: boolean;
 		}> = [];
 
 		const cur = parseDate(start);
@@ -61,15 +62,17 @@
 		while (cur <= target && iterations < maxDays) {
 			const dStr = formatDate(cur);
 			const dayData = map[dStr] || { total: 0, count: 0 };
+			const dayOfWeek = cur.getDay();
 			const displayLabel = `${cur.getDate()} ${MONTHS[cur.getMonth()]}`;
-			const fullDateLabel = `${DAYS[cur.getDay()]}, ${cur.getDate()} ${MONTHS[cur.getMonth()]} ${cur.getFullYear()}`;
+			const fullDateLabel = `${DAYS[dayOfWeek]}, ${cur.getDate()} ${MONTHS[cur.getMonth()]} ${cur.getFullYear()}`;
 
 			days.push({
 				date: dStr,
 				label: displayLabel,
 				fullDate: fullDateLabel,
 				amount: dayData.total,
-				count: dayData.count
+				count: dayData.count,
+				isWeekend: dayOfWeek === 0 || dayOfWeek === 6
 			});
 
 			cur.setDate(cur.getDate() + 1);
@@ -109,6 +112,8 @@
 		return rawMax * 1.08;
 	});
 
+	const avgY = $derived(padding.top + chartH - (dailyAverage / maxAmount) * chartH);
+
 	const points = $derived.by(() => {
 		if (dailyData.length === 0) return [];
 		const n = dailyData.length;
@@ -119,6 +124,40 @@
 			const y = baseline - (d.amount / maxAmount) * chartH;
 			return { x, y, day: d };
 		});
+	});
+
+	// Contiguous weekend background strips (Sat-Sun)
+	const weekendStrips = $derived.by(() => {
+		if (points.length === 0) return [];
+		const n = points.length;
+		const halfStep = n > 1 ? chartW / (2 * (n - 1)) : chartW / 2;
+		const minX = padding.left;
+		const maxX = padding.left + chartW;
+
+		const strips: Array<{ x: number; width: number }> = [];
+		let activeStart: number | null = null;
+		let activeEnd = 0;
+
+		for (let i = 0; i < n; i++) {
+			const pt = points[i];
+			if (pt.day.isWeekend) {
+				const segStart = Math.max(minX, pt.x - halfStep);
+				const segEnd = Math.min(maxX, pt.x + halfStep);
+				if (activeStart === null) {
+					activeStart = segStart;
+				}
+				activeEnd = segEnd;
+			} else if (activeStart !== null) {
+				strips.push({ x: activeStart, width: Math.max(1, activeEnd - activeStart) });
+				activeStart = null;
+			}
+		}
+
+		if (activeStart !== null) {
+			strips.push({ x: activeStart, width: Math.max(1, activeEnd - activeStart) });
+		}
+
+		return strips;
 	});
 
 	// Catmull-Rom to Cubic Bézier conversion for smooth trend curve
@@ -234,8 +273,16 @@
 				<TrendingDown class="w-3.5 h-3.5 text-[#e06c75]" />
 				<span>DAILY SPEND OSCILLOSCOPE</span>
 			</div>
-			<div class="text-[11px] text-stone-500 font-mono">
-				Spend per day across {dailyData.length} {dailyData.length === 1 ? 'day' : 'days'}
+			<div class="text-[11px] text-stone-500 font-mono flex items-center gap-3 flex-wrap">
+				<span>Spend per day across {dailyData.length} {dailyData.length === 1 ? 'day' : 'days'}</span>
+				<span class="inline-flex items-center gap-1.5 text-[10px] text-stone-400">
+					<span class="w-2.5 h-2.5 rounded-xs bg-[#c9b48b]/18 border border-[#c9b48b]/30 inline-block"></span>
+					<span>Weekend</span>
+				</span>
+				<span class="inline-flex items-center gap-1.5 text-[10px] text-stone-400">
+					<span class="w-3.5 border-t border-dotted border-[#c9b48b]/80 inline-block"></span>
+					<span>Avg</span>
+				</span>
 			</div>
 		</div>
 
@@ -315,6 +362,36 @@
 					</linearGradient>
 				</defs>
 
+				<!-- Weekend Background Shaded Strips -->
+				{#each weekendStrips as strip}
+					<rect
+						x={strip.x}
+						y={padding.top}
+						width={strip.width}
+						height={chartH}
+						fill="#c9b48b"
+						fill-opacity="0.08"
+					/>
+					<line
+						x1={strip.x}
+						y1={padding.top}
+						x2={strip.x}
+						y2={padding.top + chartH}
+						stroke="#c9b48b"
+						stroke-opacity="0.16"
+						stroke-width="1"
+					/>
+					<line
+						x1={strip.x + strip.width}
+						y1={padding.top}
+						x2={strip.x + strip.width}
+						y2={padding.top + chartH}
+						stroke="#c9b48b"
+						stroke-opacity="0.16"
+						stroke-width="1"
+					/>
+				{/each}
+
 				<!-- Horizontal Reference Lines -->
 				<line
 					x1={padding.left}
@@ -360,6 +437,28 @@
 					stroke="#262522"
 					stroke-width="1"
 				/>
+
+				<!-- Daily Average Dotted Reference Line -->
+				{#if dailyAverage > 0}
+					<line
+						x1={padding.left}
+						y1={avgY}
+						x2={viewBoxWidth - padding.right}
+						y2={avgY}
+						stroke="#c9b48b"
+						stroke-opacity="0.65"
+						stroke-dasharray="2 4"
+						stroke-width="1.2"
+					/>
+					<text
+						x={padding.left + 2}
+						y={avgY < padding.top + 16 ? avgY + 11 : avgY - 4}
+						text-anchor="start"
+						class="text-[9px] font-mono fill-[#c9b48b]/85"
+					>
+						AVG {formatCurrency(dailyAverage)}
+					</text>
+				{/if}
 
 				<!-- Gradient Area Fill -->
 				{#if areaPath}

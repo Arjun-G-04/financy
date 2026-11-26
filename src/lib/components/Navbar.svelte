@@ -22,10 +22,6 @@
 		{ id: 'settings', label: 'Settings', icon: Settings }
 	];
 
-	function formatNetPosition(val: number) {
-		return formatCurrency(val, appState.settings.currencySymbol);
-	}
-
 	function handleTabSelect(id: TabType) {
 		appState.activeTab = id;
 	}
@@ -57,13 +53,13 @@
 				{/each}
 			</nav>
 
-			<!-- Right: Recessed Net Position Meter & Hardware Controls -->
+			<!-- Right: Recessed Total Assets Valuation Meter & Hardware Controls -->
 			<div class="flex items-center gap-2 sm:gap-3">
-				<!-- VFD Recessed Net Position -->
+				<!-- VFD Recessed Total Assets Valuation -->
 				<div class="hw-vfd-display px-2.5 sm:px-3 py-1 flex flex-col text-right">
-					<span class="text-[9px] uppercase tracking-wider text-[#82b896]/60 font-mono hidden sm:inline">NET POSITION</span>
-					<span class="text-xs sm:text-sm font-mono tabular-nums font-bold {appState.netBalance >= 0 ? 'text-[#82b896] drop-shadow-[0_0_8px_rgba(130,184,150,0.4)]' : 'text-[#e06c75] drop-shadow-[0_0_8px_rgba(224,108,117,0.4)]'}">
-						{formatNetPosition(appState.netBalance)}
+					<span class="text-[9px] uppercase tracking-wider text-[#82b896]/60 font-mono hidden sm:inline">TOTAL ASSETS VALUATION</span>
+					<span class="text-xs sm:text-sm font-mono tabular-nums font-bold {appState.totalAssetFinal >= 0 ? 'text-[#82b896] drop-shadow-[0_0_8px_rgba(130,184,150,0.4)]' : 'text-[#e06c75] drop-shadow-[0_0_8px_rgba(224,108,117,0.4)]'}">
+						{formatCurrency(appState.totalAssetFinal, appState.settings.currencySymbol)}
 					</span>
 				</div>
 

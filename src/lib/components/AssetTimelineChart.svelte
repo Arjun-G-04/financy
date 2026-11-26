@@ -183,14 +183,9 @@
 <div class="hw-chassis p-4 sm:p-6 rounded-2xl border border-[#292924] space-y-4 shadow-xl">
 	<!-- Header & Metrics -->
 	<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#292924] pb-3">
-		<div class="space-y-0.5">
-			<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200 flex items-center gap-1.5">
-				<Activity class="w-3.5 h-3.5 text-[#82b896]" />
-				<span>VALUATION OSCILLOSCOPE (ASSET VS TIME)</span>
-			</div>
-			<div class="text-[11px] text-stone-500 font-mono">
-				Historical trajectory recorded on snapshot dispatch
-			</div>
+		<div class="text-xs font-mono uppercase tracking-wider font-bold text-stone-200 flex items-center gap-1.5">
+			<Activity class="w-3.5 h-3.5 text-[#82b896]" />
+			<span>VALUATION OSCILLOSCOPE (ASSET VS TIME)</span>
 		</div>
 
 		<!-- Summary Telemetry Pills -->

@@ -211,7 +211,7 @@
 	<!-- Assets Holdings Feed with Seamless Protrusion -->
 	<section class="relative">
 		<!-- Extruded Flange Row -->
-		<div class="flex items-end justify-between relative z-10 -mb-[1px]">
+		<div class="flex items-end relative z-10 -mb-[1px]">
 			<div
 				class="bg-[#171714] border-t border-l border-r border-[#2e2e28] rounded-tl-xl rounded-tr-lg px-4 sm:px-6 py-2.5 min-h-[44px] flex items-center shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]"
 			>
@@ -219,7 +219,6 @@
 					ASSET HOLDINGS ({appState.allAssetEntries.length})
 				</span>
 			</div>
-			<div class="flex-1 border-b border-[#2e2e28] h-[1px] self-end"></div>
 		</div>
 
 		<!-- Main Table / Cards Enclosure -->
@@ -247,15 +246,12 @@
 								<div class="min-w-0">
 									<div class="flex items-center gap-2">
 										<span class="font-mono text-sm font-bold text-stone-100 truncate">{entry.name}</span>
-										{#if isSystem}
-											<span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider bg-[#82b896]/15 text-[#82b896] border border-[#82b896]/30">
-												NET LIQUID
-											</span>
-										{/if}
 									</div>
-									<div class="text-[10px] font-mono text-stone-500 mt-0.5">
-										{isSystem ? 'Auto-synced with ledger balance' : formatTimestamp(entry.updatedAt)}
-									</div>
+									{#if !isSystem}
+										<div class="text-[10px] font-mono text-stone-500 mt-0.5">
+											{formatTimestamp(entry.updatedAt)}
+										</div>
+									{/if}
 								</div>
 
 								<!-- Delta % Pill -->
@@ -290,9 +286,8 @@
 								</div>
 
 								{#if isSystem}
-									<div class="flex items-center gap-1.5 text-[10px] font-mono text-stone-500">
-										<span class="w-1.5 h-1.5 rounded-full bg-[#82b896] animate-pulse"></span>
-										<span>LEDGER SYNC</span>
+									<div class="text-[10px] font-mono text-stone-500">
+										LEDGER SYNC
 									</div>
 								{:else}
 									<div class="flex items-center gap-1.5">
@@ -366,15 +361,12 @@
 									<td class="px-4 py-3">
 										<div class="flex items-center gap-2">
 											<span class="font-bold text-stone-100">{entry.name}</span>
-											{#if isSystem}
-												<span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold uppercase tracking-wider bg-[#82b896]/15 text-[#82b896] border border-[#82b896]/30">
-													NET LIQUID
-												</span>
-											{/if}
 										</div>
-										<div class="text-[10px] text-stone-500 mt-0.5">
-											{isSystem ? 'Auto-synced with ledger balance' : `Updated ${formatTimestamp(entry.updatedAt)}`}
-										</div>
+										{#if !isSystem}
+											<div class="text-[10px] text-stone-500 mt-0.5">
+												Updated {formatTimestamp(entry.updatedAt)}
+											</div>
+										{/if}
 									</td>
 
 									<!-- Initial -->
@@ -406,9 +398,8 @@
 									<!-- Actions -->
 									<td class="px-4 py-3 text-right whitespace-nowrap">
 										{#if isSystem}
-											<div class="flex items-center justify-end gap-1.5 text-[10px] font-mono text-stone-500">
-												<span class="w-1.5 h-1.5 rounded-full bg-[#82b896] animate-pulse"></span>
-												<span>LEDGER SYNC</span>
+											<div class="text-[10px] font-mono text-stone-500">
+												LEDGER SYNC
 											</div>
 										{:else}
 											<div class="flex items-center justify-end gap-1.5">
